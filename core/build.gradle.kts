@@ -32,6 +32,7 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.contentNegotiation)
+            implementation(libs.ktor.client.websockets)
             implementation(libs.ktor.serialization.kotlinxJson)
         }
         androidMain.dependencies {
@@ -41,7 +42,7 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
         jvmMain.dependencies {
-            implementation(libs.ktor.client.java)
+            implementation(libs.ktor.client.cio)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
