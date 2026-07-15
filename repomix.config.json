@@ -1,0 +1,24 @@
+{
+  "output": {
+    "filePath": "repomix-output.txt",
+    "style": "xml"
+  },
+  "ignore": {
+    "customPatterns": [
+      "**/.gradle/**",
+      "**/build/**",
+      "**/.idea/**",
+      "**/*.gradle",
+      "**/gradlew*",
+      "**/gradle/**",
+      "**/*.png",
+      "**/*.webp",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/local.properties",
+      "**/.git/**",
+      "**/iosApp.xcodeproj/**",
+      "**repomix**"
+    ]
+  }
+}

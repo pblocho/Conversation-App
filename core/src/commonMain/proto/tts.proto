@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.pibi.conversation.grpc;
+
+// Text-to-speech: client streams text pieces, server streams back WAV audio.
+service TtsService {
+  rpc Synthesize(stream TextPiece) returns (stream AudioData);
+}
+
+message TextPiece {
+  string text = 1;
+}
+
+message AudioData {
+  // WAV-encoded audio bytes for playback.
+  bytes data = 1;
+}

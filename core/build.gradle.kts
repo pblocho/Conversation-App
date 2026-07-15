@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinxRpc)
 }
 
 kotlin {
@@ -30,22 +31,25 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.contentNegotiation)
-            implementation(libs.ktor.client.websockets)
-            implementation(libs.ktor.serialization.kotlinxJson)
+            api(libs.kotlinx.rpc.grpc.core)
+            api(libs.kotlinx.rpc.grpc.client)
+            api(libs.kotlinx.rpc.protobuf)
         }
         androidMain.dependencies {
-            implementation(libs.ktor.client.okhttp)
-        }
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+            implementation(libs.grpc.okhttp)
         }
         jvmMain.dependencies {
-            implementation(libs.ktor.client.cio)
+            implementation(libs.grpc.netty)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmTest.dependencies {
+            implementation(libs.kotlinx.rpc.grpc.server)
+        }
     }
+}
+
+rpc {
+    protoc()
 }

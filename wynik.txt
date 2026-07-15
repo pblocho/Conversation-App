@@ -1,0 +1,208 @@
+Po przejrzeniu dostarczonego kodu zidentyfikowałem kilka punktów, które mogą wymagać uwagi dotyczących poprawności, architektury oraz wykorzystania Kotlin Coroutines. Poniżej przedstawię te punkty wraz z propozycjami rozwiązań.
+
+### 1. Poprawność składniowa
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.jvm.kt`
+Linia:
+```kotlin
+launch(Dispatchers.IO) {
+```
+powinna być:
+```kotlin
+val job = launch(Dispatchers.IO) {
+```
+Zgodnie z kodem, powinien być przypisany do zmiennej `job`, aby można było go anulować po zamknięciu `awaitClose`.
+
+### 2. Architektura
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt`
+Klasa `SttClient` ma zbyt duży wpływ na szczegóły implementacji (np., host, port). Rozważienie:
+- Użycie konfiguracji do przekazywania takich szczegółów.
+- Wykorzystanie interfejsu `SttClient` z domyślną implementacją.
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/manager/ConversationManager.jvm.kt`
+Metoda `startConversation` ma wiele odpowiedzialności. Rozważienie:
+- Wydzielenie logiki nagrań w oddzielną klasę lub funkcję.
+
+### 3. Wielowątkowość i Kotlin Coroutines
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.jvm.kt`
+Linia:
+```kotlin
+sendJob.cancel()
+```
+ta linia jest wywoływana po zakończeniu `for` pętli, co oznacza, że zawsze zostanie anulowane, nawet jeśli nie nastąpił żaden błąd. Rozważienie:
+- Anulowanie tylko w przypadku wyjątku.
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt`
+Linia:
+```kotlin
+sendJob.cancel()
+```
+Anulowanie zadania powinno być wykonane po zakończeniu wszystkich operacji, a nie natychmiast po zakończeniu nagrań. Rozważienie:
+- Anulowanie `sendJob` w bloku `finally`.
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/manager/ConversationManager.jvm.kt`
+Linia:
+```kotlin
+sttClient.streamAudioToStt(startRecording)
+```
+Wywołanie tej metody może być zakończone wyjątkiem, co spowoduje anulowanie całości `coroutineScope`. Rozważienie:
+- Wykorzystanie osobnej koreny do zarządzania nagraniem i przetwarzaniem dźwięku.
+
+### 4. Inne sugestie
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt`
+Dodanie obsługi wyjątków w bardziej szczegółowy sposób:
+```kotlin
+catch (e: Exception) {
+    println("Błąd połączenia z serwerem STT: ${e.message}")
+    _textOutputFlow.emit("Error: ${e.message}")
+}
+```
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/TtsClient/TtsClient.kt`
+Dodanie obsługi wyjątków podobnie jak w `SttClient`.
+
+### Podsumowanie
+Poprawa architektury oraz stosunku odpowiedzialności między klasami pomoże uczynić kod bardziej zrozumiały i utrzymywalny. Dodatkowo, poprawne zarządzanie wielowątkowością i asynchronicznymi operacjami jest kluczowa dla wydajnego działania aplikacji.
+
+Poniżej znajduje się kilka propozycji implementacyjnych:
+
+#### Zaktualizowana klasa `AudioRecorder.jvm.kt`:
+```kotlin
+actual object AudioRecorder {
+    private fun calculateRms(audioData: ByteArray): Double {
+        val shorts = ShortArray(audioData.size / 2)
+        ByteBuffer.wrap(audioData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts)
+
+        var sum = 0.0
+        for (sample in shorts) {
+            sum += sample * sample
+        }
+        return sqrt(sum / shorts.size)
+    }
+
+    actual fun startRecording(): Flow<ByteArray> = callbackFlow {
+        val format = AudioFormat(16000f, 16, 1, true, false)
+        val info = DataLine.Info(TargetDataLine::class.java, format)
+
+        if (!AudioSystem.isLineSupported(info)) {
+            close(IllegalStateException("Mikrofon nie wspiera wymaganego formatu."))
+            return@callbackFlow
+        }
+
+        val line = AudioSystem.getLine(info) as TargetDataLine
+        line.open(format)
+        line.start()
+
+        println("🎙️ Mikrofon wystartował...")
+
+        val job = launch(Dispatchers.IO) {
+            try {
+                val buffer = ByteArray(4096)
+                while (isActive) {
+                    val bytesRead = line.read(buffer, 0, buffer.size)
+                    if (bytesRead > 0) {
+                        val currentBuffer = buffer.copyOf(bytesRead)
+
+                        val rms = calculateRms(currentBuffer)
+                        if (rms > 300) {
+                            trySend(currentBuffer)
+                        } else {
+                            trySend(ByteArray(0))
+                        }
+                    } else if (bytesRead < 0) {
+                        break
+                    }
+                }
+            } finally {
+                line.stop()
+                line.close()
+                println("🛑 Mikrofon został zwolniony i zamknięty.")
+            }
+        }
+
+        awaitClose {
+            job.cancel()
+        }
+    }.flowOn(Dispatchers.IO)
+}
+```
+
+#### Zaktualizowana klasa `SttClient.kt`:
+```kotlin
+class SttClient {
+    companion object {
+        private val client = HttpClient {
+            install(WebSockets)
+        }
+    }
+
+    private val _textOutputFlow = MutableSharedFlow<String>()
+    val textOutputFlow: SharedFlow<String>
+        get() = _textOutputFlow.asSharedFlow()
+
+    suspend fun streamAudioToStt(audioSource: Flow<ByteArray>) {
+        try {
+            client.webSocket(host = "127.0.0.1", port = 8001, path = "/ws/stt") {
+                println("Połączono z serwerem Whisper STT!")
+
+                val sendJob = launch {
+                    audioSource.collect { audioChunk ->
+                        send(Frame.Binary(audioChunk.isEmpty(), audioChunk))
+                    }
+                }
+
+                for (frame in incoming) {
+                    if (frame is Frame.Text) {
+                        val recognizedText = frame.readText()
+                        _textOutputFlow.emit(recognizedText)
+                    }
+                }
+
+                sendJob.join() // Czekaj na zakończenie zadania wysyłającego
+            }
+        } catch (e: Exception) {
+            println("Błąd połączenia z serwerem STT: ${e.message}")
+            _textOutputFlow.emit("Error: ${e.message}")
+        }
+    }
+}
+```
+
+#### Zaktualizowana klasa `ConversationManager.jvm.kt`:
+```kotlin
+actual class ConversationManager actual constructor(
+    private val ttsClient: TtsClient,
+    private val sttClient: SttClient
+) {
+    private val _uiState = MutableStateFlow(ConversationUiState())
+    actual val uiState: StateFlow<ConversationUiState> = _uiState.asStateFlow()
+
+    actual suspend fun startConversation(textFlow: SharedFlow<String>) = coroutineScope {
+        val startRecording = AudioRecorder.startRecording()
+
+        _uiState.update { it.copy(isRecording = true, statusText = "Listening...") }
+
+        launch {
+            sttClient.textOutputFlow.collect { text ->
+                _uiState.update { state ->
+                    state.copy(statusText = "Recognized: $text")
+                }
+                println("STT:$text")
+            }
+        }
+
+        try {
+            sttClient.streamAudioToStt(startRecording)
+        } catch (e: Exception) {
+            _uiState.update { it.copy(statusText = "Error: ${e.message}") }
+        } finally {
+            _uiState.update { it.copy(isRecording = false, statusText = "Idle") }
+        }
+    }
+}
+```
+
+Te propozycje powinny pomóc w zwiększeniu jakości kodu i jego utrzymania.

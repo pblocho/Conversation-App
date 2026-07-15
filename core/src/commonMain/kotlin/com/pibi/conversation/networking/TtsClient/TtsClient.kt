@@ -1,21 +1,24 @@
 package com.pibi.conversation.networking.TtsClient
 
-import com.pibi.conversation.audioplayer.playWavBytes
-import io.ktor.client.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.websocket.*
+import com.pibi.conversation.AppConfig
+import com.pibi.conversation.audioplayer.AudioPlayer.playWavBytes
+import com.pibi.conversation.grpc.TextPiece
+import com.pibi.conversation.grpc.TtsService
+import com.pibi.conversation.grpc.invoke
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.rpc.grpc.client.GrpcClient
+import kotlinx.rpc.withService
 
-class TtsClient()
+class TtsClient
 {
     companion object
     {
-        private val client = HttpClient {
-            install(WebSockets)
+        private val client = GrpcClient(AppConfig.SERVER_HOST, AppConfig.TTS_PORT) {
+            credentials = plaintext()
         }
     }
 
@@ -23,27 +26,18 @@ class TtsClient()
     {
         try
         {
-            client.webSocket(host = "127.0.0.1", port = 8000, path = "/ws") {
+            val service = client.withService<TtsService>()
 
-                val sendJob = launch {
-                    textInputFlow.collect { pieceOfText ->
-                        send(Frame.Text(pieceOfText))
-                    }
-                }
-
-                for (frame in incoming)
-                {
-                    if (frame is Frame.Binary)
-                    {
-                        val audioChunk = frame.readBytes()
-                        withContext(Dispatchers.IO) {
-                            playWavBytes(audioChunk)
-                        }
-                    }
-                }
-                sendJob.cancel()
+            val requests = textInputFlow.map { pieceOfText ->
+                TextPiece { text = pieceOfText }
             }
 
+            service.Synthesize(requests).collect { audio ->
+                val audioChunk = audio.data.toByteArray()
+                withContext(Dispatchers.IO) {
+                    playWavBytes(audioChunk)
+                }
+            }
         } catch (e: Exception)
         {
             println("Error connecting to TTS server: ${e.message}")

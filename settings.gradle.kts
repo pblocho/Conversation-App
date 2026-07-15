@@ -12,6 +12,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven("https://redirector.kotlinlang.org/maven/kxrpc-grpc")
     }
 }
 
@@ -25,6 +26,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven("https://redirector.kotlinlang.org/maven/kxrpc-grpc")
     }
 }
 

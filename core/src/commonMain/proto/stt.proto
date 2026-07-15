@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package com.pibi.conversation.grpc;
+
+// Speech-to-text: client streams microphone audio, server streams back transcripts.
+service SttService {
+  rpc Transcribe(stream AudioChunk) returns (stream Transcript);
+}
+
+message AudioChunk {
+  // Raw PCM audio bytes. Empty when end_of_utterance is set.
+  bytes data = 1;
+  // Marks the end of an utterance (replaces the empty WebSocket frame signal).
+  bool end_of_utterance = 2;
+}
+
+message Transcript {
+  string text = 1;
+}

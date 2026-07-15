@@ -1,0 +1,2663 @@
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: **/.gradle/**, **/build/**, **/.idea/**, **/*.gradle, **/gradlew*, **/gradle/**, **/*.png, **/*.webp, **/*.jpg, **/*.jpeg, **/local.properties, **/.git/**, **/iosApp.xcodeproj/**
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  androidApp/
+    src/
+      main/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                MainActivity.kt
+        res/
+          drawable/
+            ic_launcher_background.xml
+          drawable-v24/
+            ic_launcher_foreground.xml
+          mipmap-anydpi-v26/
+            ic_launcher_round.xml
+            ic_launcher.xml
+          values/
+            strings.xml
+        AndroidManifest.xml
+    build.gradle.kts
+  desktopApp/
+    src/
+      main/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                main.kt
+    build.gradle.kts
+  iosApp/
+    Configuration/
+      Config.xcconfig
+    iosApp/
+      Assets.xcassets/
+        AccentColor.colorset/
+          Contents.json
+        AppIcon.appiconset/
+          Contents.json
+        Contents.json
+      Preview Content/
+        Preview Assets.xcassets/
+          Contents.json
+      ContentView.swift
+      Info.plist
+      iOSApp.swift
+  shared/
+    src/
+      androidHostTest/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                SharedLogicAndroidHostTest.kt
+      androidMain/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                Platform.android.kt
+      commonMain/
+        composeResources/
+          drawable/
+            compose-multiplatform.xml
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                App.kt
+                ConversationViewModel.kt
+                Platform.kt
+                QuestionAndAnswer.kt
+      commonTest/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                SharedCommonTest.kt
+      iosMain/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                MainViewController.kt
+                Platform.ios.kt
+      iosTest/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                SharedLogicIOSTest.kt
+      jvmMain/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                Platform.jvm.kt
+      jvmTest/
+        kotlin/
+          com/
+            pibi/
+              conversation/
+                SharedLogicDesktopTest.kt
+    build.gradle.kts
+core/
+  src/
+    androidMain/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              audioplayer/
+                AudioPlayer.android.kt
+              audiorecorder/
+                AudioRecorder.android.kt
+              data/
+                model/
+                  Uuid.android.kt
+              manager/
+                ConversationManager.android.kt
+    commonMain/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              audioplayer/
+                AudioPlayer.kt
+              audiorecorder/
+                AudioRecorder.kt
+              data/
+                model/
+                  QuestionWithAnswer.kt
+                  Uuid.kt
+              manager/
+                ConversationManager.kt
+                ConversationUiState.kt
+              networking/
+                SttClient/
+                  SttClient.kt
+                TtsClient/
+                  TtsClient.kt
+              AppConfig.kt
+              GreetingUtil.kt
+      proto/
+        stt.proto
+        tts.proto
+    iosMain/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              audioplayer/
+                AudioPlayer.ios.kt
+              audiorecorder/
+                AudioRecorder.ios.kt
+              data/
+                model/
+                  Uuid.ios.kt
+              manager/
+                ConversationManager.ios.kt
+    jvmMain/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              audioplayer/
+                AudioPlayer.jvm.kt
+              audiorecorder/
+                AudioRecorder.jvm.kt
+              data/
+                model/
+                  Uuid.jvm.kt
+              manager/
+                ConversationManager.jvm.kt
+    jvmTest/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              networking/
+                SttGrpcSmokeTest.kt
+  build.gradle.kts
+server/
+  src/
+    main/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              Application.kt
+      resources/
+        logback.xml
+    test/
+      kotlin/
+        com/
+          pibi/
+            conversation/
+              ApplicationTest.kt
+  build.gradle.kts
+.gitignore
+build.gradle.kts
+CLAUDE.md
+gradle.properties
+gradlew
+gradlew.bat
+README.md
+repomix.config.json
+settings.gradle.kts
+wynik.txt
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="core/src/androidMain/kotlin/com/pibi/conversation/audioplayer/AudioPlayer.android.kt">
+package com.pibi.conversation.audioplayer
+
+// TODO: implement WAV playback with AudioTrack/MediaPlayer
+actual object AudioPlayer
+{
+    actual fun playWavBytes(wavBytes: ByteArray)
+    {
+        println("AudioPlayer (Android): playback not implemented yet, received ${wavBytes.size} bytes")
+    }
+}
+</file>
+
+<file path="core/src/commonMain/proto/stt.proto">
+syntax = "proto3";
+
+package com.pibi.conversation.grpc;
+
+// Speech-to-text: client streams microphone audio, server streams back transcripts.
+service SttService {
+  rpc Transcribe(stream AudioChunk) returns (stream Transcript);
+}
+
+message AudioChunk {
+  // Raw PCM audio bytes. Empty when end_of_utterance is set.
+  bytes data = 1;
+  // Marks the end of an utterance (replaces the empty WebSocket frame signal).
+  bool end_of_utterance = 2;
+}
+
+message Transcript {
+  string text = 1;
+}
+</file>
+
+<file path="core/src/commonMain/proto/tts.proto">
+syntax = "proto3";
+
+package com.pibi.conversation.grpc;
+
+// Text-to-speech: client streams text pieces, server streams back WAV audio.
+service TtsService {
+  rpc Synthesize(stream TextPiece) returns (stream AudioData);
+}
+
+message TextPiece {
+  string text = 1;
+}
+
+message AudioData {
+  // WAV-encoded audio bytes for playback.
+  bytes data = 1;
+}
+</file>
+
+<file path="core/src/iosMain/kotlin/com/pibi/conversation/audioplayer/AudioPlayer.ios.kt">
+package com.pibi.conversation.audioplayer
+
+// TODO: implement WAV playback with AVAudioPlayer/AVAudioEngine
+actual object AudioPlayer
+{
+    actual fun playWavBytes(wavBytes: ByteArray)
+    {
+        println("AudioPlayer (iOS): playback not implemented yet, received ${wavBytes.size} bytes")
+    }
+}
+</file>
+
+<file path="core/src/jvmTest/kotlin/com/pibi/conversation/networking/SttGrpcSmokeTest.kt">
+package com.pibi.conversation.networking
+
+import com.pibi.conversation.AppConfig
+import com.pibi.conversation.grpc.AudioChunk
+import com.pibi.conversation.grpc.SttService
+import com.pibi.conversation.grpc.Transcript
+import com.pibi.conversation.grpc.invoke
+import com.pibi.conversation.networking.SttClient.SttClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.transformWhile
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlinx.rpc.grpc.server.GrpcServer
+import kotlinx.rpc.registerService
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+private class EchoSttService : SttService {
+    override fun Transcribe(message: Flow<AudioChunk>): Flow<Transcript> =
+        message.transformWhile { chunk ->
+            if (chunk.endOfUtterance) {
+                emit(Transcript { text = "end" })
+                false
+            } else {
+                emit(Transcript { text = "${chunk.data.size} bytes" })
+                true
+            }
+        }
+}
+
+class SttGrpcSmokeTest {
+    @Test
+    fun bidirectionalStreamingRoundTrip() = runBlocking {
+        val server = GrpcServer(AppConfig.STT_PORT) {
+            services {
+                registerService<SttService> { EchoSttService() }
+            }
+        }.start()
+
+        try {
+            val client = SttClient()
+            val transcripts = async { client.textOutputFlow.take(2).toList() }
+            delay(200) // let the collector subscribe before streaming starts
+
+            launch { client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))) }
+
+            val received = withTimeout(15_000) { transcripts.await() }
+            assertEquals(listOf("3 bytes", "end"), received)
+        } finally {
+            server.shutdown()
+            server.awaitTermination()
+        }
+    }
+}
+</file>
+
+<file path="CLAUDE.md">
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project overview
+
+Kotlin Multiplatform voice-conversation app (Android, iOS, Desktop/JVM) with a Compose Multiplatform UI. It records microphone audio, streams it to a speech-to-text (STT) service, and plays back audio from a text-to-speech (TTS) service. Both services are **external backends** reached over gRPC — STT on port 8001, TTS on port 8000 (see `core/.../AppConfig.kt`). They are not part of this repo and must implement the contracts in `core/src/commonMain/proto/{stt,tts}.proto`.
+
+## Commands
+
+```bash
+# Run
+./gradlew :app:desktopApp:run                      # desktop app (hot reload: :app:desktopApp:hotRun --auto)
+./gradlew :app:androidApp:assembleDebug            # Android APK
+./gradlew :server:run                              # Ktor server stub (port 8080, not the STT/TTS backend)
+# iOS: open app/iosApp in Xcode and run from there
+
+# Compile-check all targets of a module (fast feedback for common-code changes)
+./gradlew :core:compileKotlinJvm :core:compileAndroidMain :core:compileKotlinIosSimulatorArm64 :core:compileKotlinIosArm64
+
+# Tests
+./gradlew :core:jvmTest                            # includes the gRPC smoke test (starts an in-process GrpcServer)
+./gradlew :core:jvmTest --tests "com.pibi.conversation.networking.SttGrpcSmokeTest"   # single test class
+./gradlew :app:shared:testAndroidHostTest :app:shared:jvmTest :app:shared:iosSimulatorArm64Test
+
+# Proto codegen (runs automatically before compile; manual trigger:)
+./gradlew :core:bufGenerateCommonMain              # output: core/build/protoBuild/generated/
+```
+
+## Module structure
+
+Dependency chain: `core` → `app:shared` → `app:androidApp` / `app:desktopApp` / `app/iosApp` (Xcode project consuming the shared framework).
+
+- `core` — all business logic: networking, audio, conversation state. KMP targets: `jvm`, `androidLibrary`, `iosArm64`, `iosSimulatorArm64`.
+- `app:shared` — Compose UI + `ConversationViewModel`, shared across all app targets.
+- `server` — unrelated Ktor hello-world stub; do not confuse it with the real STT/TTS backends.
+
+## Data flow (the big picture)
+
+`ConversationViewModel` (app:shared) constructs `ConversationManager(TtsClient(), SttClient())` and feeds text into a `MutableSharedFlow<String>`. Everything downstream lives in `core`:
+
+- `ConversationManager` is `expect/actual` per platform (`core/src/{android,ios,jvm}Main/.../manager/`) and orchestrates the pipeline, exposing `ConversationUiState` via `StateFlow`.
+- `AudioRecorder` (`expect object`) emits `Flow<ByteArray>` of audio chunks. **An empty `ByteArray` means "utterance ended"** — `SttClient` translates it into an `AudioChunk` with `end_of_utterance = true` and suppresses repeated markers until audio resumes.
+- `SttClient` / `TtsClient` (commonMain) are gRPC bidirectional-streaming clients. Their public API is plain Kotlin Flows (`streamAudioToStt(Flow<ByteArray>)`, `textOutputFlow`, `streamAudioFromTts(SharedFlow<String>)`) — keep it stable; the platform `ConversationManager` actuals and the ViewModel depend on it.
+- `AudioPlayer` (`expect object`) plays WAV bytes from TTS. Only the JVM actual is implemented; **the Android and iOS actuals are println stubs (TODO)**.
+
+## gRPC stack — non-obvious constraints
+
+Networking uses **kotlinx-rpc dev builds** (`0.11.0-grpc-189`), the only JetBrains path with iOS/Kotlin-Native gRPC support (the stable kotlinx-rpc gRPC is JVM-only). The API is experimental — pin versions, expect breaking changes on upgrade.
+
+- Artifacts come from `https://redirector.kotlinlang.org/maven/kxrpc-grpc`, declared in `settings.gradle.kts` under both `pluginManagement` and `dependencyResolutionManagement`.
+- The `grpcJava` version in `libs.versions.toml` (netty/okhttp transports) must **exactly match** the grpc-java version kotlinx-rpc bundles (1.81.0 for grpc-189). A mismatch compiles fine but fails at runtime with `AbstractMethodError`.
+- The kotlinx-rpc compiler plugin is Kotlin-version-locked: when bumping `kotlin` in the catalog, a matching `<kotlinVersion>-0.11.0-grpc-N` artifact must exist in the repo above (check `kotlinx-rpc-compiler-plugin-k2/maven-metadata.xml`).
+- Codegen is managed by the rpc Gradle plugin via Buf — do **not** apply the `com.google.protobuf` or Buf Gradle plugins to `core`.
+- Generated API shape: services are interfaces with `fun Transcribe(message: Flow<AudioChunk>): Flow<Transcript>`; messages are built with a DSL (`AudioChunk { data = ...; endOfUtterance = true }`) that requires importing the generated `com.pibi.conversation.grpc.invoke`; proto `bytes` maps to `kotlinx.io.bytestring.ByteString` (construct with `ByteString(*byteArray)`, read with `.toByteArray()`).
+- `GrpcClient` lives in `kotlinx.rpc.grpc.client` (not `kotlinx.rpc.grpc`); plaintext config is `credentials = plaintext()`.
+</file>
+
+<file path="app/androidApp/src/main/kotlin/com/pibi/conversation/MainActivity.kt">
+package com.pibi.conversation
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            App()
+        }
+    }
+}
+
+@Preview
+@Composable
+fun AppAndroidPreview() {
+    App()
+}
+</file>
+
+<file path="app/androidApp/src/main/res/drawable/ic_launcher_background.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9,0L9,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,0L19,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,0L29,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,0L39,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,0L49,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,0L59,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,0L69,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,0L79,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M89,0L89,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M99,0L99,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,9L108,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,19L108,19"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,29L108,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,39L108,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,49L108,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,59L108,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,69L108,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,79L108,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,89L108,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,99L108,99"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,29L89,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,39L89,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,49L89,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,59L89,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,69L89,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,79L89,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,19L29,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,19L39,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,19L49,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,19L59,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,19L69,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,19L79,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+</vector>
+</file>
+
+<file path="app/androidApp/src/main/res/drawable-v24/ic_launcher_foreground.xml">
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="85.84757"
+                android:endY="92.4963"
+                android:startX="42.9492"
+                android:startY="49.59793"
+                android:type="linear">
+                <item
+                    android:color="#44000000"
+                    android:offset="0.0" />
+                <item
+                    android:color="#00000000"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
+        android:strokeWidth="1"
+        android:strokeColor="#00000000" />
+</vector>
+</file>
+
+<file path="app/androidApp/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+</file>
+
+<file path="app/androidApp/src/main/res/mipmap-anydpi-v26/ic_launcher.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+</file>
+
+<file path="app/androidApp/src/main/res/values/strings.xml">
+<resources>
+    <string name="app_name">Conversation</string>
+</resources>
+</file>
+
+<file path="app/androidApp/src/main/AndroidManifest.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity
+            android:exported="true"
+            android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+</file>
+
+<file path="app/androidApp/build.gradle.kts">
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_11
+    }
+}
+dependencies {
+    implementation(projects.app.shared)
+
+    implementation(libs.androidx.activity.compose)
+
+    implementation(libs.compose.uiToolingPreview)
+    debugImplementation(libs.compose.uiTooling)
+}
+
+android {
+    namespace = "com.pibi.conversation"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+    defaultConfig {
+        applicationId = "com.pibi.conversation"
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        versionCode = 1
+        versionName = "1.0"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            isMinifyEnabled = false
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+</file>
+
+<file path="app/desktopApp/src/main/kotlin/com/pibi/conversation/main.kt">
+package com.pibi.conversation
+
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+
+fun main() = application {
+    Window(
+        onCloseRequest = ::exitApplication,
+        title = "Conversation",
+    ) {
+        App()
+    }
+}
+</file>
+
+<file path="app/desktopApp/build.gradle.kts">
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
+plugins {
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+}
+
+dependencies {
+    implementation(projects.app.shared)
+
+    implementation(compose.desktop.currentOs)
+    implementation(libs.kotlinx.coroutinesSwing)
+
+    implementation(libs.compose.uiToolingPreview)
+}
+
+compose.desktop {
+    application {
+        mainClass = "com.pibi.conversation.MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            packageName = "com.pibi.conversation"
+            packageVersion = "1.0.0"
+        }
+    }
+}
+</file>
+
+<file path="app/iosApp/Configuration/Config.xcconfig">
+TEAM_ID=
+
+PRODUCT_NAME=Conversation
+PRODUCT_BUNDLE_IDENTIFIER=com.pibi.conversation.Conversation$(TEAM_ID)
+
+CURRENT_PROJECT_VERSION=1
+MARKETING_VERSION=1.0
+</file>
+
+<file path="app/iosApp/iosApp/Assets.xcassets/AccentColor.colorset/Contents.json">
+{
+  "colors" : [
+    {
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+</file>
+
+<file path="app/iosApp/iosApp/Assets.xcassets/AppIcon.appiconset/Contents.json">
+{
+  "images" : [
+    {
+      "filename" : "app-icon-1024.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "tinted"
+        }
+      ],
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+</file>
+
+<file path="app/iosApp/iosApp/Assets.xcassets/Contents.json">
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+</file>
+
+<file path="app/iosApp/iosApp/Preview Content/Preview Assets.xcassets/Contents.json">
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+</file>
+
+<file path="app/iosApp/iosApp/ContentView.swift">
+import UIKit
+import SwiftUI
+import Shared
+
+struct ComposeView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Self.Context) -> UIViewController {
+        MainViewControllerKt.MainViewController()
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Self.Context) {}
+}
+
+struct ContentView: View {
+    var body: some View {
+        ComposeView()
+            .ignoresSafeArea()
+    }
+}
+</file>
+
+<file path="app/iosApp/iosApp/Info.plist">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+</dict>
+</plist>
+</file>
+
+<file path="app/iosApp/iosApp/iOSApp.swift">
+import SwiftUI
+
+@main
+struct iOSApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+</file>
+
+<file path="app/shared/src/androidHostTest/kotlin/com/pibi/conversation/SharedLogicAndroidHostTest.kt">
+package com.pibi.conversation
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class SharedLogicAndroidHostTest {
+
+    @Test
+    fun example() {
+        assertEquals(3, 1 + 2)
+    }
+}
+</file>
+
+<file path="app/shared/src/androidMain/kotlin/com/pibi/conversation/Platform.android.kt">
+package com.pibi.conversation
+
+import android.os.Build
+
+class AndroidPlatform : Platform {
+    override val name: String = "Android ${Build.VERSION.SDK_INT}"
+}
+
+actual fun getPlatform(): Platform = AndroidPlatform()
+</file>
+
+<file path="app/shared/src/commonMain/composeResources/drawable/compose-multiplatform.xml">
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="450dp"
+    android:height="450dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+  <path
+      android:pathData="M56.25,18V46L32,60 7.75,46V18L32,4Z"
+      android:fillColor="#6075f2"/>
+  <path
+      android:pathData="m41.5,26.5v11L32,43V60L56.25,46V18Z"
+      android:fillColor="#6b57ff"/>
+  <path
+      android:pathData="m32,43 l-9.5,-5.5v-11L7.75,18V46L32,60Z">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:centerX="23.131"
+          android:centerY="18.441"
+          android:gradientRadius="42.132"
+          android:type="radial">
+        <item android:offset="0" android:color="#FF5383EC"/>
+        <item android:offset="0.867" android:color="#FF7F52FF"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <path
+      android:pathData="M22.5,26.5 L32,21 41.5,26.5 56.25,18 32,4 7.75,18Z">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:startX="44.172"
+          android:startY="4.377"
+          android:endX="17.973"
+          android:endY="34.035"
+          android:type="linear">
+        <item android:offset="0" android:color="#FF33C3FF"/>
+        <item android:offset="0.878" android:color="#FF5383EC"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <path
+      android:pathData="m32,21 l9.526,5.5v11L32,43 22.474,37.5v-11z"
+      android:fillColor="#000000"/>
+</vector>
+</file>
+
+<file path="app/shared/src/commonMain/kotlin/com/pibi/conversation/ConversationViewModel.kt">
+package com.pibi.conversation
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.pibi.conversation.manager.ConversationManager
+import com.pibi.conversation.networking.SttClient.SttClient
+import com.pibi.conversation.networking.TtsClient.TtsClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+
+class ConversationViewModel(
+    private val manager: ConversationManager = ConversationManager(TtsClient(), SttClient())
+) : ViewModel() {
+    
+    val uiState = manager.uiState
+    private val textFlow = MutableSharedFlow<String>()
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            manager.startConversation(textFlow)
+        }
+    }
+
+    fun ask(text: String) {
+        viewModelScope.launch {
+            textFlow.emit(text)
+        }
+    }
+}
+</file>
+
+<file path="app/shared/src/commonMain/kotlin/com/pibi/conversation/Platform.kt">
+package com.pibi.conversation
+
+interface Platform {
+    val name: String
+}
+
+expect fun getPlatform(): Platform
+</file>
+
+<file path="app/shared/src/commonMain/kotlin/com/pibi/conversation/QuestionAndAnswer.kt">
+package com.pibi.conversation
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.pibi.conversation.data.model.QuestionWithAnswer
+
+@Composable
+fun QuestionAndAnswer(
+    questionWithAnswer: QuestionWithAnswer
+)
+{
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.LightGray),
+        modifier = Modifier.fillMaxWidth().padding(16.dp)
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        ) {
+            Text(questionWithAnswer.question, modifier = Modifier.padding(16.dp))
+        }
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        ) {
+            Text(questionWithAnswer.answer, modifier = Modifier.padding(16.dp))
+        }
+    }
+}
+</file>
+
+<file path="app/shared/src/commonTest/kotlin/com/pibi/conversation/SharedCommonTest.kt">
+package com.pibi.conversation
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class SharedCommonTest {
+
+    @Test
+    fun example() {
+        assertEquals(3, 1 + 2)
+    }
+}
+</file>
+
+<file path="app/shared/src/iosMain/kotlin/com/pibi/conversation/MainViewController.kt">
+package com.pibi.conversation
+
+import androidx.compose.ui.window.ComposeUIViewController
+
+fun MainViewController() = ComposeUIViewController { App() }
+</file>
+
+<file path="app/shared/src/iosMain/kotlin/com/pibi/conversation/Platform.ios.kt">
+package com.pibi.conversation
+
+import platform.UIKit.UIDevice
+
+class IOSPlatform: Platform {
+    override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
+}
+
+actual fun getPlatform(): Platform = IOSPlatform()
+</file>
+
+<file path="app/shared/src/iosTest/kotlin/com/pibi/conversation/SharedLogicIOSTest.kt">
+package com.pibi.conversation
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class SharedLogicIOSTest {
+
+    @Test
+    fun example() {
+        assertEquals(3, 1 + 2)
+    }
+}
+</file>
+
+<file path="app/shared/src/jvmMain/kotlin/com/pibi/conversation/Platform.jvm.kt">
+package com.pibi.conversation
+
+class JVMPlatform: Platform {
+    override val name: String = "Java ${System.getProperty("java.version")}"
+}
+
+actual fun getPlatform(): Platform = JVMPlatform()
+</file>
+
+<file path="app/shared/src/jvmTest/kotlin/com/pibi/conversation/SharedLogicDesktopTest.kt">
+package com.pibi.conversation
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class SharedLogicDesktopTest {
+
+    @Test
+    fun example() {
+        assertEquals(3, 1 + 2)
+    }
+}
+</file>
+
+<file path="app/shared/build.gradle.kts">
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+}
+
+kotlin {
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "Shared"
+            isStatic = true
+        }
+    }
+    
+    jvm()
+    
+    androidLibrary {
+       namespace = "com.pibi.conversation.app.shared"
+       compileSdk = libs.versions.android.compileSdk.get().toInt()
+       minSdk = libs.versions.android.minSdk.get().toInt()
+    
+       compilerOptions {
+           jvmTarget = JvmTarget.JVM_11
+       }
+       androidResources {
+           enable = true
+       }
+       withHostTest {
+           isIncludeAndroidResources = true
+       }
+    }
+    
+    sourceSets {
+        androidMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
+        }
+        commonMain.dependencies {
+            api(projects.core)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.androidx.lifecycle.viewmodelCompose)
+            implementation(libs.androidx.lifecycle.runtimeCompose)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+    }
+}
+
+dependencies {
+    androidRuntimeClasspath(libs.compose.uiTooling)
+}
+</file>
+
+<file path="core/src/androidMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.android.kt">
+package com.pibi.conversation.audiorecorder
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+
+actual object AudioRecorder {
+    actual fun startRecording(): Flow<ByteArray> = emptyFlow()
+}
+</file>
+
+<file path="core/src/androidMain/kotlin/com/pibi/conversation/data/model/Uuid.android.kt">
+package com.pibi.conversation.data.model
+
+import java.util.UUID
+
+actual fun randomUuid(): String = UUID.randomUUID().toString()
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/audioplayer/AudioPlayer.kt">
+package com.pibi.conversation.audioplayer
+
+expect object AudioPlayer
+{
+    fun playWavBytes(wavBytes: ByteArray)
+}
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.kt">
+package com.pibi.conversation.audiorecorder
+
+import kotlinx.coroutines.flow.Flow
+
+expect object AudioRecorder
+{
+    fun startRecording(): Flow<ByteArray>
+}
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/data/model/QuestionWithAnswer.kt">
+package com.pibi.conversation.data.model
+
+
+data class QuestionWithAnswer(val question: String, val answer: String, val id: String = randomUuid())
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/data/model/Uuid.kt">
+package com.pibi.conversation.data.model
+
+expect fun randomUuid(): String
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/manager/ConversationUiState.kt">
+package com.pibi.conversation.manager
+
+import com.pibi.conversation.data.model.QuestionWithAnswer
+
+data class ConversationUiState(
+    val messages: List<QuestionWithAnswer> = emptyList(),
+    val isRecording: Boolean = false,
+    val isProcessing: Boolean = false,
+    val currentVolume: Double = 0.0,
+    val statusText: String = "Ready"
+)
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt">
+package com.pibi.conversation.networking.SttClient
+
+import com.pibi.conversation.AppConfig
+import com.pibi.conversation.grpc.AudioChunk
+import com.pibi.conversation.grpc.SttService
+import com.pibi.conversation.grpc.invoke
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.io.bytestring.ByteString
+import kotlinx.rpc.grpc.client.GrpcClient
+import kotlinx.rpc.withService
+
+class SttClient {
+    companion object {
+        private val client = GrpcClient(AppConfig.SERVER_HOST, AppConfig.STT_PORT) {
+            credentials = plaintext()
+        }
+    }
+
+    private val _textOutputFlow = MutableSharedFlow<String>()
+    val textOutputFlow = _textOutputFlow.asSharedFlow()
+
+    suspend fun streamAudioToStt(audioSource: Flow<ByteArray>) {
+        try {
+            val service = client.withService<SttService>()
+
+            val requests = flow {
+                // An empty chunk from the recorder marks the end of an utterance.
+                // Emit the marker once and suppress repeats until audio resumes.
+                var utteranceOpen = true
+                audioSource.collect { audioChunk ->
+                    if (audioChunk.isNotEmpty()) {
+                        utteranceOpen = true
+                        emit(AudioChunk { data = ByteString(*audioChunk) })
+                    } else if (utteranceOpen) {
+                        utteranceOpen = false
+                        emit(AudioChunk { endOfUtterance = true })
+                    }
+                }
+            }
+
+            service.Transcribe(requests).collect { transcript ->
+                _textOutputFlow.emit(transcript.text)
+            }
+        } catch (e: Exception) {
+            println("STT Connection Error: ${e.message}")
+        }
+    }
+}
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/AppConfig.kt">
+package com.pibi.conversation
+
+object AppConfig {
+    const val SERVER_HOST = "127.0.0.1"
+    const val TTS_PORT = 8000
+    const val STT_PORT = 8001
+    const val AUDIO_THRESHOLD = 300
+}
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/GreetingUtil.kt">
+package com.pibi.conversation
+
+fun sayHello(to: String): String =
+    "Hello, $to!"
+</file>
+
+<file path="core/src/iosMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.ios.kt">
+package com.pibi.conversation.audiorecorder
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+
+actual object AudioRecorder {
+    actual fun startRecording(): Flow<ByteArray> = emptyFlow()
+}
+</file>
+
+<file path="core/src/iosMain/kotlin/com/pibi/conversation/data/model/Uuid.ios.kt">
+package com.pibi.conversation.data.model
+
+import platform.Foundation.NSUUID
+
+actual fun randomUuid(): String = NSUUID().UUIDString()
+</file>
+
+<file path="core/src/jvmMain/kotlin/com/pibi/conversation/audioplayer/AudioPlayer.jvm.kt">
+package com.pibi.conversation.audioplayer
+
+import java.io.ByteArrayInputStream
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.SourceDataLine
+import javax.sound.sampled.DataLine
+
+actual object AudioPlayer
+{
+    actual fun playWavBytes(wavBytes: ByteArray)
+    {
+        try
+        {
+            val byteArrayInputStream = ByteArrayInputStream(wavBytes)
+
+            val audioInputStream: AudioInputStream = AudioSystem.getAudioInputStream(byteArrayInputStream)
+            val format = audioInputStream.format
+
+            val info = DataLine.Info(SourceDataLine::class.java, format)
+            val line = AudioSystem.getLine(info) as SourceDataLine
+
+            line.open(format)
+            line.start()
+
+            val buffer = ByteArray(4096)
+            var bytesRead = 0
+            while (audioInputStream.read(buffer).also { bytesRead = it } != -1)
+            {
+                line.write(buffer, 0, bytesRead)
+            }
+
+            line.drain()
+            line.close()
+            audioInputStream.close()
+
+        } catch (e: Exception)
+        {
+            println("Error playing audio on JVM: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+}
+</file>
+
+<file path="core/src/jvmMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.jvm.kt">
+package com.pibi.conversation.audiorecorder
+
+import com.pibi.conversation.AppConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import javax.sound.sampled.AudioFormat
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.DataLine
+import javax.sound.sampled.TargetDataLine
+import kotlin.math.sqrt
+
+actual object AudioRecorder
+{
+
+    private fun calculateRms(audioData: ByteArray): Double
+    {
+        val shorts = ShortArray(audioData.size / 2)
+        ByteBuffer.wrap(audioData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts)
+
+        var sum = 0.0
+        for (sample in shorts)
+        {
+            sum += sample * sample
+        }
+        return sqrt(sum / shorts.size)
+    }
+
+    actual fun startRecording(): Flow<ByteArray> = callbackFlow {
+        val format = AudioFormat(16000f, 16, 1, true, false)
+        val info = DataLine.Info(TargetDataLine::class.java, format)
+
+        if (!AudioSystem.isLineSupported(info))
+        {
+            close(IllegalStateException("Mikrofon nie wspiera wymaganego formatu."))
+            return@callbackFlow
+        }
+
+        val line = AudioSystem.getLine(info) as TargetDataLine
+        line.open(format)
+        line.start()
+
+        println("🎙️ Mikrofon wystartował...")
+
+        val job = launch(Dispatchers.IO) {
+            try
+            {
+                val buffer = ByteArray(4096)
+                while (true)
+                {
+                    val bytesRead = line.read(buffer, 0, buffer.size)
+                    if (bytesRead > 0)
+                    {
+                        val currentBuffer = buffer.copyOf(bytesRead)
+
+                        val rms = calculateRms(currentBuffer)
+                        if (rms > AppConfig.AUDIO_THRESHOLD)
+                        {
+                            trySend(currentBuffer)
+                        } else
+                        {
+                            trySend(ByteArray(0))
+                        }
+                    } else if (bytesRead < 0)
+                    {
+                        break
+                    }
+                }
+            } finally
+            {
+                line.stop()
+                line.close()
+                println("🛑 Mikrofon został zwolniony i zamknięty.")
+            }
+        }
+
+        awaitClose {
+            job.cancel()
+        }
+    }.flowOn(Dispatchers.IO)
+}
+</file>
+
+<file path="core/src/jvmMain/kotlin/com/pibi/conversation/data/model/Uuid.jvm.kt">
+package com.pibi.conversation.data.model
+
+import java.util.UUID
+
+actual fun randomUuid(): String = UUID.randomUUID().toString()
+</file>
+
+<file path="server/src/main/resources/logback.xml">
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="trace">
+        <appender-ref ref="STDOUT"/>
+    </root>
+    <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
+</configuration>
+</file>
+
+<file path="server/src/test/kotlin/com/pibi/conversation/ApplicationTest.kt">
+package com.pibi.conversation
+
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.server.testing.*
+import kotlin.test.*
+
+class ApplicationTest {
+
+    @Test
+    fun testRoot() = testApplication {
+        application {
+            module()
+        }
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Hello, Ktor!", response.bodyAsText())
+    }
+}
+</file>
+
+<file path=".gitignore">
+*.iml
+.kotlin
+.gradle
+**/build/
+xcuserdata
+!src/**/build/
+local.properties
+.idea
+.DS_Store
+captures
+.externalNativeBuild
+.cxx
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+node_modules/
+</file>
+
+<file path="build.gradle.kts">
+plugins {
+    // this is necessary to avoid the plugins to be loaded multiple times
+    // in each subproject's classloader
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.androidMultiplatformLibrary) apply false
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.kotlinJvm) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.ktor) apply false
+}
+</file>
+
+<file path="gradle.properties">
+#Kotlin
+kotlin.code.style=official
+kotlin.daemon.jvmargs=-Xmx3072M
+
+#Gradle
+org.gradle.jvmargs=-Xmx4096M -Dfile.encoding=UTF-8
+org.gradle.configuration-cache=true
+org.gradle.caching=true
+
+#Android
+android.nonTransitiveRClass=true
+android.useAndroidX=true
+</file>
+
+<file path="gradlew">
+#!/bin/sh
+
+#
+# Copyright © 2015 the original authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+##############################################################################
+#
+#   Gradle start up script for POSIX generated by Gradle.
+#
+#   Important for running:
+#
+#   (1) You need a POSIX-compliant shell to run this script. If your /bin/sh is
+#       noncompliant, but you have some other compliant shell such as ksh or
+#       bash, then to run this script, type that shell name before the whole
+#       command line, like:
+#
+#           ksh Gradle
+#
+#       Busybox and similar reduced shells will NOT work, because this script
+#       requires all of these POSIX shell features:
+#         * functions;
+#         * expansions «$var», «${var}», «${var:-default}», «${var+SET}»,
+#           «${var#prefix}», «${var%suffix}», and «$( cmd )»;
+#         * compound commands having a testable exit status, especially «case»;
+#         * various built-in commands including «command», «set», and «ulimit».
+#
+#   Important for patching:
+#
+#   (2) This script targets any POSIX shell, so it avoids extensions provided
+#       by Bash, Ksh, etc; in particular arrays are avoided.
+#
+#       The "traditional" practice of packing multiple parameters into a
+#       space-separated string is a well documented source of bugs and security
+#       problems, so this is (mostly) avoided, by progressively accumulating
+#       options in "$@", and eventually passing that to Java.
+#
+#       Where the inherited environment variables (DEFAULT_JVM_OPTS, JAVA_OPTS,
+#       and GRADLE_OPTS) rely on word-splitting, this is performed explicitly;
+#       see the in-line comments for details.
+#
+#       There are tweaks for specific operating systems such as AIX, CygWin,
+#       Darwin, MinGW, and NonStop.
+#
+#   (3) This script is generated from the Groovy template
+#       https://github.com/gradle/gradle/blob/HEAD/platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       within the Gradle project.
+#
+#       You can find Gradle at https://github.com/gradle/gradle/.
+#
+##############################################################################
+
+# Attempt to set APP_HOME
+
+# Resolve links: $0 may be a link
+app_path=$0
+
+# Need this for daisy-chained symlinks.
+while
+    APP_HOME=${app_path%"${app_path##*/}"}  # leaves a trailing /; empty if no leading path
+    [ -h "$app_path" ]
+do
+    ls=$( ls -ld "$app_path" )
+    link=${ls#*' -> '}
+    case $link in             #(
+      /*)   app_path=$link ;; #(
+      *)    app_path=$APP_HOME$link ;;
+    esac
+done
+
+# This is normally unused
+# shellcheck disable=SC2034
+APP_BASE_NAME=${0##*/}
+# Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
+APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD=maximum
+
+warn () {
+    echo "$*"
+} >&2
+
+die () {
+    echo
+    echo "$*"
+    echo
+    exit 1
+} >&2
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false
+msys=false
+darwin=false
+nonstop=false
+case "$( uname )" in                #(
+  CYGWIN* )         cygwin=true  ;; #(
+  Darwin* )         darwin=true  ;; #(
+  MSYS* | MINGW* )  msys=true    ;; #(
+  NONSTOP* )        nonstop=true ;;
+esac
+
+
+
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD=$JAVA_HOME/jre/sh/java
+    else
+        JAVACMD=$JAVA_HOME/bin/java
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD=java
+    if ! command -v java >/dev/null 2>&1
+    then
+        die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+fi
+
+# Increase the maximum file descriptors if we can.
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
+    case $MAX_FD in #(
+      max*)
+        # In POSIX sh, ulimit -H is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        MAX_FD=$( ulimit -H -n ) ||
+            warn "Could not query maximum file descriptor limit"
+    esac
+    case $MAX_FD in  #(
+      '' | soft) :;; #(
+      *)
+        # In POSIX sh, ulimit -n is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        ulimit -n "$MAX_FD" ||
+            warn "Could not set maximum file descriptor limit to $MAX_FD"
+    esac
+fi
+
+# Collect all arguments for the java command, stacking in reverse order:
+#   * args from the command line
+#   * the main class name
+#   * -classpath
+#   * -D...appname settings
+#   * --module-path (only if needed)
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables.
+
+# For Cygwin or MSYS, switch paths to Windows format before running java
+if "$cygwin" || "$msys" ; then
+    APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
+
+    JAVACMD=$( cygpath --unix "$JAVACMD" )
+
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    for arg do
+        if
+            case $arg in                                #(
+              -*)   false ;;                            # don't mess with options #(
+              /?*)  t=${arg#/} t=/${t%%/*}              # looks like a POSIX filepath
+                    [ -e "$t" ] ;;                      #(
+              *)    false ;;
+            esac
+        then
+            arg=$( cygpath --path --ignore --mixed "$arg" )
+        fi
+        # Roll the args list around exactly as many times as the number of
+        # args, so each arg winds up back in the position where it started, but
+        # possibly modified.
+        #
+        # NB: a `for` loop captures its iteration list before it begins, so
+        # changing the positional parameters here affects neither the number of
+        # iterations, nor the values presented in `arg`.
+        shift                   # remove old arg
+        set -- "$@" "$arg"      # push replacement arg
+    done
+fi
+
+
+# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+
+# Collect all arguments for the java command:
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
+#     and any embedded shellness will be escaped.
+#   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable and will be
+#     treated as '${Hostname}' itself on the command line.
+
+set -- \
+        "-Dorg.gradle.appname=$APP_BASE_NAME" \
+        -jar "$APP_HOME/gradle/wrapper/gradle-wrapper.jar" \
+        "$@"
+
+# Stop when "xargs" is not available.
+if ! command -v xargs >/dev/null 2>&1
+then
+    die "xargs is not available"
+fi
+
+# Use "xargs" to parse quoted args.
+#
+# With -n1 it outputs one arg per line, with the quotes and backslashes removed.
+#
+# In Bash we could simply go:
+#
+#   readarray ARGS < <( xargs -n1 <<<"$var" ) &&
+#   set -- "${ARGS[@]}" "$@"
+#
+# but POSIX shell has neither arrays nor command substitution, so instead we
+# post-process each arg (as a line of input to sed) to backslash-escape any
+# character that might be a shell metacharacter, then use eval to reverse
+# that process (while maintaining the separation between arguments), and wrap
+# the whole thing up as a single "set" statement.
+#
+# This will of course break if any of these variables contains a newline or
+# an unmatched quote.
+#
+
+eval "set -- $(
+        printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS" |
+        xargs -n1 |
+        sed ' s~[^-[:alnum:]+,./:=@_]~\\&~g; ' |
+        tr '\n' ' '
+    )" '"$@"'
+
+exec "$JAVACMD" "$@"
+</file>
+
+<file path="gradlew.bat">
+@rem
+@rem Copyright 2015 the original author or authors.
+@rem
+@rem Licensed under the Apache License, Version 2.0 (the "License");
+@rem you may not use this file except in compliance with the License.
+@rem You may obtain a copy of the License at
+@rem
+@rem      https://www.apache.org/licenses/LICENSE-2.0
+@rem
+@rem Unless required by applicable law or agreed to in writing, software
+@rem distributed under the License is distributed on an "AS IS" BASIS,
+@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@rem See the License for the specific language governing permissions and
+@rem limitations under the License.
+@rem
+@rem SPDX-License-Identifier: Apache-2.0
+@rem
+
+@if "%DEBUG%"=="" @echo off
+@rem ##########################################################################
+@rem
+@rem  Gradle startup script for Windows
+@rem
+@rem ##########################################################################
+
+@rem Set local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" setlocal
+
+set DIRNAME=%~dp0
+if "%DIRNAME%"=="" set DIRNAME=.
+@rem This is normally unused
+set APP_BASE_NAME=%~n0
+set APP_HOME=%DIRNAME%
+
+@rem Resolve any "." and ".." in APP_HOME to make it shorter.
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
+
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+
+@rem Find java.exe
+if defined JAVA_HOME goto findJavaFromJavaHome
+
+set JAVA_EXE=java.exe
+%JAVA_EXE% -version >NUL 2>&1
+if %ERRORLEVEL% equ 0 goto execute
+
+echo. 1>&2
+echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH. 1>&2
+echo. 1>&2
+echo Please set the JAVA_HOME variable in your environment to match the 1>&2
+echo location of your Java installation. 1>&2
+
+goto fail
+
+:findJavaFromJavaHome
+set JAVA_HOME=%JAVA_HOME:"=%
+set JAVA_EXE=%JAVA_HOME%/bin/java.exe
+
+if exist "%JAVA_EXE%" goto execute
+
+echo. 1>&2
+echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME% 1>&2
+echo. 1>&2
+echo Please set the JAVA_HOME variable in your environment to match the 1>&2
+echo location of your Java installation. 1>&2
+
+goto fail
+
+:execute
+@rem Setup the command line
+
+
+
+@rem Execute Gradle
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -jar "%APP_HOME%\gradle\wrapper\gradle-wrapper.jar" %*
+
+:end
+@rem End local scope for the variables with windows NT shell
+if %ERRORLEVEL% equ 0 goto mainEnd
+
+:fail
+rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
+rem the _cmd.exe /c_ return code!
+set EXIT_CODE=%ERRORLEVEL%
+if %EXIT_CODE% equ 0 set EXIT_CODE=1
+if not ""=="%GRADLE_EXIT_CONSOLE%" exit %EXIT_CODE%
+exit /b %EXIT_CODE%
+
+:mainEnd
+if "%OS%"=="Windows_NT" endlocal
+
+:omega
+</file>
+
+<file path="README.md">
+This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM), Server.
+
+* [/app/iosApp](./app/iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
+  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+
+* [/app/shared](./app/shared/src) is for code that will be shared across your Compose Multiplatform applications.
+  It contains several subfolders:
+  - [commonMain](./app/shared/src/commonMain/kotlin) is for code that’s common for all targets.
+  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
+    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
+    the [iosMain](./app/shared/src/iosMain/kotlin) folder would be the right place for such calls.
+    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./app/shared/src/jvmMain/kotlin)
+    folder is the appropriate location.
+
+* [/core](./core/src) is for the code that will be shared between all targets in the project.
+  The most important subfolder is [commonMain](./core/src/commonMain/kotlin). If preferred, you
+  can add code to the platform-specific folders here too.
+
+* [/server](./server/src/main/kotlin) is for the Ktor server application.
+
+### Running the apps
+
+Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+
+- Android app: `./gradlew :app:androidApp:assembleDebug`
+- Desktop app:
+  - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
+  - Standard run: `./gradlew :app:desktopApp:run`
+- Server: `./gradlew :server:run`
+- iOS app: open the [/app/iosApp](./app/iosApp) directory in Xcode and run it from there.
+
+### Running tests
+
+Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+
+- Android tests: `./gradlew :app:shared:testAndroidHostTest`
+- Desktop tests: `./gradlew :app:shared:jvmTest`
+- Server tests: `./gradlew :server:test`
+- iOS tests: `./gradlew :app:shared:iosSimulatorArm64Test`
+
+---
+
+Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+</file>
+
+<file path="repomix.config.json">
+{
+  "output": {
+    "filePath": "repomix-output.txt",
+    "style": "xml"
+  },
+  "ignore": {
+    "customPatterns": [
+      "**/.gradle/**",
+      "**/build/**",
+      "**/.idea/**",
+      "**/*.gradle",
+      "**/gradlew*",
+      "**/gradle/**",
+      "**/*.png",
+      "**/*.webp",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/local.properties",
+      "**/.git/**",
+      "**/iosApp.xcodeproj/**"
+    ]
+  }
+}
+</file>
+
+<file path="settings.gradle.kts">
+rootProject.name = "Conversation"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+pluginManagement {
+    repositories {
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+        maven("https://redirector.kotlinlang.org/maven/kxrpc-grpc")
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google {
+            mavenContent {
+                includeGroupAndSubgroups("androidx")
+                includeGroupAndSubgroups("com.android")
+                includeGroupAndSubgroups("com.google")
+            }
+        }
+        mavenCentral()
+        maven("https://redirector.kotlinlang.org/maven/kxrpc-grpc")
+    }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+include(":app:androidApp")
+include(":app:desktopApp")
+include(":app:shared")
+include(":core")
+include(":server")
+</file>
+
+<file path="wynik.txt">
+Po przejrzeniu dostarczonego kodu zidentyfikowałem kilka punktów, które mogą wymagać uwagi dotyczących poprawności, architektury oraz wykorzystania Kotlin Coroutines. Poniżej przedstawię te punkty wraz z propozycjami rozwiązań.
+
+### 1. Poprawność składniowa
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.jvm.kt`
+Linia:
+```kotlin
+launch(Dispatchers.IO) {
+```
+powinna być:
+```kotlin
+val job = launch(Dispatchers.IO) {
+```
+Zgodnie z kodem, powinien być przypisany do zmiennej `job`, aby można było go anulować po zamknięciu `awaitClose`.
+
+### 2. Architektura
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt`
+Klasa `SttClient` ma zbyt duży wpływ na szczegóły implementacji (np., host, port). Rozważienie:
+- Użycie konfiguracji do przekazywania takich szczegółów.
+- Wykorzystanie interfejsu `SttClient` z domyślną implementacją.
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/manager/ConversationManager.jvm.kt`
+Metoda `startConversation` ma wiele odpowiedzialności. Rozważienie:
+- Wydzielenie logiki nagrań w oddzielną klasę lub funkcję.
+
+### 3. Wielowątkowość i Kotlin Coroutines
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/audiorecorder/AudioRecorder.jvm.kt`
+Linia:
+```kotlin
+sendJob.cancel()
+```
+ta linia jest wywoływana po zakończeniu `for` pętli, co oznacza, że zawsze zostanie anulowane, nawet jeśli nie nastąpił żaden błąd. Rozważienie:
+- Anulowanie tylko w przypadku wyjątku.
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt`
+Linia:
+```kotlin
+sendJob.cancel()
+```
+Anulowanie zadania powinno być wykonane po zakończeniu wszystkich operacji, a nie natychmiast po zakończeniu nagrań. Rozważienie:
+- Anulowanie `sendJob` w bloku `finally`.
+
+#### W pliku `core/src/jvmMain/kotlin/com/pibi/conversation/manager/ConversationManager.jvm.kt`
+Linia:
+```kotlin
+sttClient.streamAudioToStt(startRecording)
+```
+Wywołanie tej metody może być zakończone wyjątkiem, co spowoduje anulowanie całości `coroutineScope`. Rozważienie:
+- Wykorzystanie osobnej koreny do zarządzania nagraniem i przetwarzaniem dźwięku.
+
+### 4. Inne sugestie
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/SttClient/SttClient.kt`
+Dodanie obsługi wyjątków w bardziej szczegółowy sposób:
+```kotlin
+catch (e: Exception) {
+    println("Błąd połączenia z serwerem STT: ${e.message}")
+    _textOutputFlow.emit("Error: ${e.message}")
+}
+```
+
+#### W pliku `core/src/commonMain/kotlin/com/pibi/conversation/networking/TtsClient/TtsClient.kt`
+Dodanie obsługi wyjątków podobnie jak w `SttClient`.
+
+### Podsumowanie
+Poprawa architektury oraz stosunku odpowiedzialności między klasami pomoże uczynić kod bardziej zrozumiały i utrzymywalny. Dodatkowo, poprawne zarządzanie wielowątkowością i asynchronicznymi operacjami jest kluczowa dla wydajnego działania aplikacji.
+
+Poniżej znajduje się kilka propozycji implementacyjnych:
+
+#### Zaktualizowana klasa `AudioRecorder.jvm.kt`:
+```kotlin
+actual object AudioRecorder {
+    private fun calculateRms(audioData: ByteArray): Double {
+        val shorts = ShortArray(audioData.size / 2)
+        ByteBuffer.wrap(audioData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(shorts)
+
+        var sum = 0.0
+        for (sample in shorts) {
+            sum += sample * sample
+        }
+        return sqrt(sum / shorts.size)
+    }
+
+    actual fun startRecording(): Flow<ByteArray> = callbackFlow {
+        val format = AudioFormat(16000f, 16, 1, true, false)
+        val info = DataLine.Info(TargetDataLine::class.java, format)
+
+        if (!AudioSystem.isLineSupported(info)) {
+            close(IllegalStateException("Mikrofon nie wspiera wymaganego formatu."))
+            return@callbackFlow
+        }
+
+        val line = AudioSystem.getLine(info) as TargetDataLine
+        line.open(format)
+        line.start()
+
+        println("🎙️ Mikrofon wystartował...")
+
+        val job = launch(Dispatchers.IO) {
+            try {
+                val buffer = ByteArray(4096)
+                while (isActive) {
+                    val bytesRead = line.read(buffer, 0, buffer.size)
+                    if (bytesRead > 0) {
+                        val currentBuffer = buffer.copyOf(bytesRead)
+
+                        val rms = calculateRms(currentBuffer)
+                        if (rms > 300) {
+                            trySend(currentBuffer)
+                        } else {
+                            trySend(ByteArray(0))
+                        }
+                    } else if (bytesRead < 0) {
+                        break
+                    }
+                }
+            } finally {
+                line.stop()
+                line.close()
+                println("🛑 Mikrofon został zwolniony i zamknięty.")
+            }
+        }
+
+        awaitClose {
+            job.cancel()
+        }
+    }.flowOn(Dispatchers.IO)
+}
+```
+
+#### Zaktualizowana klasa `SttClient.kt`:
+```kotlin
+class SttClient {
+    companion object {
+        private val client = HttpClient {
+            install(WebSockets)
+        }
+    }
+
+    private val _textOutputFlow = MutableSharedFlow<String>()
+    val textOutputFlow: SharedFlow<String>
+        get() = _textOutputFlow.asSharedFlow()
+
+    suspend fun streamAudioToStt(audioSource: Flow<ByteArray>) {
+        try {
+            client.webSocket(host = "127.0.0.1", port = 8001, path = "/ws/stt") {
+                println("Połączono z serwerem Whisper STT!")
+
+                val sendJob = launch {
+                    audioSource.collect { audioChunk ->
+                        send(Frame.Binary(audioChunk.isEmpty(), audioChunk))
+                    }
+                }
+
+                for (frame in incoming) {
+                    if (frame is Frame.Text) {
+                        val recognizedText = frame.readText()
+                        _textOutputFlow.emit(recognizedText)
+                    }
+                }
+
+                sendJob.join() // Czekaj na zakończenie zadania wysyłającego
+            }
+        } catch (e: Exception) {
+            println("Błąd połączenia z serwerem STT: ${e.message}")
+            _textOutputFlow.emit("Error: ${e.message}")
+        }
+    }
+}
+```
+
+#### Zaktualizowana klasa `ConversationManager.jvm.kt`:
+```kotlin
+actual class ConversationManager actual constructor(
+    private val ttsClient: TtsClient,
+    private val sttClient: SttClient
+) {
+    private val _uiState = MutableStateFlow(ConversationUiState())
+    actual val uiState: StateFlow<ConversationUiState> = _uiState.asStateFlow()
+
+    actual suspend fun startConversation(textFlow: SharedFlow<String>) = coroutineScope {
+        val startRecording = AudioRecorder.startRecording()
+
+        _uiState.update { it.copy(isRecording = true, statusText = "Listening...") }
+
+        launch {
+            sttClient.textOutputFlow.collect { text ->
+                _uiState.update { state ->
+                    state.copy(statusText = "Recognized: $text")
+                }
+                println("STT:$text")
+            }
+        }
+
+        try {
+            sttClient.streamAudioToStt(startRecording)
+        } catch (e: Exception) {
+            _uiState.update { it.copy(statusText = "Error: ${e.message}") }
+        } finally {
+            _uiState.update { it.copy(isRecording = false, statusText = "Idle") }
+        }
+    }
+}
+```
+
+Te propozycje powinny pomóc w zwiększeniu jakości kodu i jego utrzymania.
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/networking/TtsClient/TtsClient.kt">
+package com.pibi.conversation.networking.TtsClient
+
+import com.pibi.conversation.AppConfig
+import com.pibi.conversation.audioplayer.AudioPlayer.playWavBytes
+import com.pibi.conversation.grpc.TextPiece
+import com.pibi.conversation.grpc.TtsService
+import com.pibi.conversation.grpc.invoke
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import kotlinx.rpc.grpc.client.GrpcClient
+import kotlinx.rpc.withService
+
+class TtsClient
+{
+    companion object
+    {
+        private val client = GrpcClient(AppConfig.SERVER_HOST, AppConfig.TTS_PORT) {
+            credentials = plaintext()
+        }
+    }
+
+    suspend fun streamAudioFromTts(textInputFlow: SharedFlow<String>)
+    {
+        try
+        {
+            val service = client.withService<TtsService>()
+
+            val requests = textInputFlow.map { pieceOfText ->
+                TextPiece { text = pieceOfText }
+            }
+
+            service.Synthesize(requests).collect { audio ->
+                val audioChunk = audio.data.toByteArray()
+                withContext(Dispatchers.IO) {
+                    playWavBytes(audioChunk)
+                }
+            }
+        } catch (e: Exception)
+        {
+            println("Error connecting to TTS server: ${e.message}")
+        }
+    }
+}
+</file>
+
+<file path="core/build.gradle.kts">
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlinxRpc)
+}
+
+kotlin {
+    iosArm64()
+    iosSimulatorArm64()
+    
+    jvm()
+    
+    androidLibrary {
+       namespace = "com.pibi.conversation.core"
+       compileSdk = libs.versions.android.compileSdk.get().toInt()
+       minSdk = libs.versions.android.minSdk.get().toInt()
+    
+       compilerOptions {
+           jvmTarget = JvmTarget.JVM_11
+       }
+       androidResources {
+           enable = true
+       }
+       withHostTest {
+           isIncludeAndroidResources = true
+       }
+    }
+    
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.rpc.grpc.core)
+            api(libs.kotlinx.rpc.grpc.client)
+            api(libs.kotlinx.rpc.protobuf)
+        }
+        androidMain.dependencies {
+            implementation(libs.grpc.okhttp)
+        }
+        jvmMain.dependencies {
+            implementation(libs.grpc.netty)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+        jvmTest.dependencies {
+            implementation(libs.kotlinx.rpc.grpc.server)
+        }
+    }
+}
+
+rpc {
+    protoc()
+}
+</file>
+
+<file path="server/src/main/kotlin/com/pibi/conversation/Application.kt">
+package com.pibi.conversation
+
+import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+
+fun main() {
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
+}
+
+fun Application.module() {
+    install(WebSockets)
+    routing {
+        get("/") {
+            call.respondText(sayHello("Ktor"))
+        }
+        webSocket("/") {
+            for (frame in incoming) {
+                if (frame is Frame.Text) {
+                    val text = frame.readText()
+                    send("Server received: $text")
+                }
+            }
+        }
+    }
+}
+</file>
+
+<file path="server/build.gradle.kts">
+plugins {
+    alias(libs.plugins.kotlinJvm)
+    alias(libs.plugins.ktor)
+}
+
+group = "com.pibi.conversation"
+version = "1.0.0"
+application {
+    mainClass = "com.pibi.conversation.ApplicationKt"
+}
+
+dependencies {
+    api(projects.core)
+    implementation(libs.logback)
+    implementation(libs.ktor.serverCore)
+    implementation(libs.ktor.serverNetty)
+    implementation(libs.ktor.serverWebsockets)
+    testImplementation(libs.ktor.serverTestHost)
+    testImplementation(libs.kotlin.testJunit)
+}
+</file>
+
+<file path="app/shared/src/commonMain/kotlin/com/pibi/conversation/App.kt">
+package com.pibi.conversation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+@Composable
+@Preview
+fun App(
+    viewModel: ConversationViewModel = viewModel { ConversationViewModel() }
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    var textToSpeak by remember { mutableStateOf("Hello World!") }
+
+    MaterialTheme {
+        Column(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .safeContentPadding()
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Status: ${uiState.statusText}",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(8.dp)
+            )
+
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(
+                    items = uiState.messages,
+                    key = { it.id }
+                ) { msg ->
+                    QuestionAndAnswer(msg)
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = textToSpeak,
+                    onValueChange = { textToSpeak = it },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = {
+                    viewModel.ask(textToSpeak)
+                }) {
+                    Text("Ask")
+                }
+            }
+        }
+    }
+}
+</file>
+
+<file path="core/src/androidMain/kotlin/com/pibi/conversation/manager/ConversationManager.android.kt">
+package com.pibi.conversation.manager
+
+import com.pibi.conversation.networking.SttClient.SttClient
+import com.pibi.conversation.networking.TtsClient.TtsClient
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+actual class ConversationManager actual constructor(
+    private val ttsClient: TtsClient,
+    private val sttClient: SttClient
+) {
+    private val _uiState = MutableStateFlow(ConversationUiState())
+    actual val uiState: StateFlow<ConversationUiState> = _uiState.asStateFlow()
+
+    actual suspend fun startConversation(textFlow: SharedFlow<String>) {
+        ttsClient.streamAudioFromTts(textFlow)
+    }
+}
+</file>
+
+<file path="core/src/commonMain/kotlin/com/pibi/conversation/manager/ConversationManager.kt">
+package com.pibi.conversation.manager
+
+import com.pibi.conversation.networking.SttClient.SttClient
+import com.pibi.conversation.networking.TtsClient.TtsClient
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+
+expect class ConversationManager constructor(
+    ttsClient: TtsClient,
+    sttClient: SttClient
+)
+{
+    val uiState: StateFlow<ConversationUiState>
+
+    suspend fun startConversation(textFlow: SharedFlow<String>)
+}
+</file>
+
+<file path="core/src/iosMain/kotlin/com/pibi/conversation/manager/ConversationManager.ios.kt">
+package com.pibi.conversation.manager
+
+import com.pibi.conversation.networking.SttClient.SttClient
+import com.pibi.conversation.networking.TtsClient.TtsClient
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+actual class ConversationManager actual constructor(
+    private val ttsClient: TtsClient,
+    private val sttClient: SttClient
+) {
+    private val _uiState = MutableStateFlow(ConversationUiState())
+    actual val uiState: StateFlow<ConversationUiState> = _uiState.asStateFlow()
+
+    actual suspend fun startConversation(textFlow: SharedFlow<String>) {
+        ttsClient.streamAudioFromTts(textFlow)
+    }
+}
+</file>
+
+<file path="core/src/jvmMain/kotlin/com/pibi/conversation/manager/ConversationManager.jvm.kt">
+package com.pibi.conversation.manager
+
+import com.pibi.conversation.audiorecorder.AudioRecorder
+import com.pibi.conversation.networking.SttClient.SttClient
+import com.pibi.conversation.networking.TtsClient.TtsClient
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+actual class ConversationManager actual constructor(
+    private val ttsClient: TtsClient,
+    private val sttClient: SttClient
+)
+{
+    private val _uiState = MutableStateFlow(ConversationUiState())
+    actual val uiState: StateFlow<ConversationUiState> = _uiState.asStateFlow()
+
+    actual suspend fun startConversation(textFlow: SharedFlow<String>) = coroutineScope {
+        val startRecording = AudioRecorder.startRecording()
+
+        _uiState.update { it.copy(isRecording = true, statusText = "Listening...") }
+
+        launch {
+            sttClient.textOutputFlow.collect { text ->
+                _uiState.update { state ->
+                    state.copy(statusText = "Recognized: $text")
+                }
+            }
+        }
+
+        launch {
+            ttsClient.streamAudioFromTts(sttClient.textOutputFlow)
+        }
+
+        sttClient.streamAudioToStt(startRecording)
+
+        _uiState.update { it.copy(isRecording = false, statusText = "Idle") }
+    }
+}
+</file>
+
+</files>
