@@ -1,15 +1,14 @@
-package com.pibi.conversation.networking.TtsClient
+package com.pibi.conversation.networking.ttsClient
 
 import com.pibi.conversation.AppConfig
-import com.pibi.conversation.audioplayer.AudioPlayer.playWavBytes
+import com.pibi.conversation.data.model.SynthesizedSpeech
 import com.pibi.conversation.grpc.TextPiece
 import com.pibi.conversation.grpc.TtsService
 import com.pibi.conversation.grpc.invoke
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import kotlinx.rpc.grpc.client.GrpcClient
 import kotlinx.rpc.withService
 
@@ -22,8 +21,11 @@ class TtsClient
         }
     }
 
-    suspend fun streamAudioFromTts(textInputFlow: SharedFlow<String>)
-    {
+    /**
+     * Streams text pieces to the TTS backend and emits each synthesized result —
+     * audio together with the text it was generated from. Playback is up to the caller.
+     */
+    fun streamSpeech(textInputFlow: SharedFlow<String>): Flow<SynthesizedSpeech> = flow {
         try
         {
             val service = client.withService<TtsService>()
@@ -33,10 +35,7 @@ class TtsClient
             }
 
             service.Synthesize(requests).collect { audio ->
-                val audioChunk = audio.data.toByteArray()
-                withContext(Dispatchers.IO) {
-                    playWavBytes(audioChunk)
-                }
+                emit(SynthesizedSpeech(audio.text, audio.data.toByteArray()))
             }
         } catch (e: Exception)
         {

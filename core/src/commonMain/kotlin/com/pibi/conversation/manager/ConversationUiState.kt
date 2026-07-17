@@ -1,9 +1,9 @@
 package com.pibi.conversation.manager
 
-import com.pibi.conversation.data.model.QuestionWithAnswer
+import com.pibi.conversation.data.model.Message
 
 data class ConversationUiState(
-    val messages: List<QuestionWithAnswer> = emptyList(),
+    val messages: List<Message> = emptyList(),
     val isRecording: Boolean = false,
     val isProcessing: Boolean = false,
     val currentVolume: Double = 0.0,

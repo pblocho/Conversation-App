@@ -14,4 +14,6 @@ message TextPiece {
 message AudioData {
   // WAV-encoded audio bytes for playback.
   bytes data = 1;
+  // The text this audio chunk was synthesized from.
+  string text = 2;
 }

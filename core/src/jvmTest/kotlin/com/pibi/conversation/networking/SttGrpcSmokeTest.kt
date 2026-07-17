@@ -5,7 +5,7 @@ import com.pibi.conversation.grpc.AudioChunk
 import com.pibi.conversation.grpc.SttService
 import com.pibi.conversation.grpc.Transcript
 import com.pibi.conversation.grpc.invoke
-import com.pibi.conversation.networking.SttClient.SttClient
+import com.pibi.conversation.networking.sttClient.SttClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

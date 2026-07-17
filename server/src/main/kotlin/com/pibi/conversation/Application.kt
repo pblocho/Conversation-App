@@ -17,7 +17,7 @@ fun Application.module() {
     install(WebSockets)
     routing {
         get("/") {
-            call.respondText(sayHello("Ktor"))
+            call.respondText("Hello, Ktor!")
         }
         webSocket("/") {
             for (frame in incoming) {

@@ -8,30 +8,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.pibi.conversation.data.model.QuestionWithAnswer
+import com.pibi.conversation.data.model.Message
 
 @Composable
-fun QuestionAndAnswer(
-    questionWithAnswer: QuestionWithAnswer
+fun Question(
+    message: Message
 )
 {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
         modifier = Modifier.fillMaxWidth().padding(16.dp)
     ) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
-        ) {
-            Text(questionWithAnswer.question, modifier = Modifier.padding(16.dp))
-        }
-        Card(
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
-        ) {
-            Text(questionWithAnswer.answer, modifier = Modifier.padding(16.dp))
-        }
+        Text(message.text, modifier = Modifier.padding(16.dp))
+    }
+}
+
+@Composable
+fun Answer(
+    message: Message
+)
+{
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        modifier = Modifier.fillMaxWidth().padding(16.dp)
+    ) {
+        Text(message.text, modifier = Modifier.padding(16.dp))
     }
 }

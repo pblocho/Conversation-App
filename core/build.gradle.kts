@@ -8,6 +8,11 @@ plugins {
 }
 
 kotlin {
+    // AudioRecorder/AudioPlayer are expect objects; opt in to suppress the Beta warning (KT-61573)
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     iosArm64()
     iosSimulatorArm64()
     
@@ -34,6 +39,8 @@ kotlin {
             api(libs.kotlinx.rpc.grpc.core)
             api(libs.kotlinx.rpc.grpc.client)
             api(libs.kotlinx.rpc.protobuf)
+            // Only for Compose stability annotations (@Immutable) on UI state models
+            api(libs.compose.runtime)
         }
         androidMain.dependencies {
             implementation(libs.grpc.okhttp)

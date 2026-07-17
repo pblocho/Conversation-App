@@ -22,6 +22,7 @@ Kotlin Multiplatform voice-conversation app (Android, iOS, Desktop/JVM) with a C
 ./gradlew :core:jvmTest                            # includes the gRPC smoke test (starts an in-process GrpcServer)
 ./gradlew :core:jvmTest --tests "com.pibi.conversation.networking.SttGrpcSmokeTest"   # single test class
 ./gradlew :app:shared:testAndroidHostTest :app:shared:jvmTest :app:shared:iosSimulatorArm64Test
+./scripts/android_e2e.sh                           # Android E2E (needs a booted emulator; starts fake gRPC backend + adb reverse)
 
 # Proto codegen (runs automatically before compile; manual trigger:)
 ./gradlew :core:bufGenerateCommonMain              # output: core/build/protoBuild/generated/
@@ -37,12 +38,13 @@ Dependency chain: `core` → `app:shared` → `app:androidApp` / `app:desktopApp
 
 ## Data flow (the big picture)
 
-`ConversationViewModel` (app:shared) constructs `ConversationManager(TtsClient(), SttClient())` and feeds text into a `MutableSharedFlow<String>`. Everything downstream lives in `core`:
+`ConversationViewModel` (app:shared) constructs `ConversationManager(ConversationRepository(), viewModelScope)` and calls `startConversation()`. Everything downstream lives in `core`:
 
-- `ConversationManager` is `expect/actual` per platform (`core/src/{android,ios,jvm}Main/.../manager/`) and orchestrates the pipeline, exposing `ConversationUiState` via `StateFlow`.
+- `ConversationManager` is a single class in commonMain (platform differences live behind the `AudioRecorder`/`AudioPlayer` expects) orchestrating mic → STT → (transcripts → UI state + TTS). It exposes `ConversationUiState` via a `stateIn`-derived `StateFlow` (hence the injected `CoroutineScope`); internal state is a `MutableConversationUiState` mapped to immutable snapshots.
+- `ConversationRepository` (commonMain, `data/repository`) is the data-source layer per the Android repository pattern: it wraps the two gRPC clients and is the only thing that should touch them directly.
 - `AudioRecorder` (`expect object`) emits `Flow<ByteArray>` of audio chunks. **An empty `ByteArray` means "utterance ended"** — `SttClient` translates it into an `AudioChunk` with `end_of_utterance = true` and suppresses repeated markers until audio resumes.
-- `SttClient` / `TtsClient` (commonMain) are gRPC bidirectional-streaming clients. Their public API is plain Kotlin Flows (`streamAudioToStt(Flow<ByteArray>)`, `textOutputFlow`, `streamAudioFromTts(SharedFlow<String>)`) — keep it stable; the platform `ConversationManager` actuals and the ViewModel depend on it.
-- `AudioPlayer` (`expect object`) plays WAV bytes from TTS. Only the JVM actual is implemented; **the Android and iOS actuals are println stubs (TODO)**.
+- `SttClient` / `TtsClient` (commonMain) are gRPC bidirectional-streaming clients with plain-Flow APIs: `streamAudioToStt(Flow<ByteArray>)` + `textOutputFlow` on STT; `streamSpeech(SharedFlow<String>): Flow<SynthesizedSpeech>` on TTS (each result carries the WAV audio **and** the source text — the `text` field in `AudioData` of tts.proto). Clients do no playback; `ConversationManager` plays TTS audio and records QUESTION (recognized) / ANSWER (synthesized) messages.
+- `AudioPlayer` (`expect object`) plays WAV bytes from TTS. All three platform actuals are implemented (JVM javax.sound, iOS AVAudioPlayer, Android AudioTrack); playback blocks until the chunk finishes so sequential TTS chunks don't overlap.
 
 ## gRPC stack — non-obvious constraints
 

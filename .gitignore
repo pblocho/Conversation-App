@@ -1,4 +1,5 @@
 *.iml
+repomix-output.txt
 .kotlin
 .gradle
 **/build/

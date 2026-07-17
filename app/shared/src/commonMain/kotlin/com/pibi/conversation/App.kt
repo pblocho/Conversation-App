@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.pibi.conversation.data.model.MessageType
 
 @Composable
 @Preview
@@ -46,7 +47,10 @@ fun App(
                     items = uiState.messages,
                     key = { it.id }
                 ) { msg ->
-                    QuestionAndAnswer(msg)
+                    when (msg.messageType) {
+                        MessageType.QUESTION -> Question(msg)
+                        MessageType.ANSWER -> Answer(msg)
+                    }
                 }
             }
 
@@ -60,11 +64,6 @@ fun App(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(Modifier.width(8.dp))
-                Button(onClick = {
-                    viewModel.ask(textToSpeak)
-                }) {
-                    Text("Ask")
-                }
             }
         }
     }
