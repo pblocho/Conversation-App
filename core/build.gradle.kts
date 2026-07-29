@@ -50,6 +50,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutinesTest)
         }
         jvmTest.dependencies {
             implementation(libs.kotlinx.rpc.grpc.server)

@@ -23,16 +23,3 @@ fun Question(
         Text(message.text, modifier = Modifier.padding(16.dp))
     }
 }
-
-@Composable
-fun Answer(
-    message: Message
-)
-{
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-        modifier = Modifier.fillMaxWidth().padding(16.dp)
-    ) {
-        Text(message.text, modifier = Modifier.padding(16.dp))
-    }
-}
