@@ -174,7 +174,7 @@ private fun ConnectionBanner(connection: ConnectionState)
  * separately read as a single turn. The first message of a run keeps its id, which keeps the
  * list key stable while the turn grows.
  */
-private fun List<Message>.mergeConsecutive(): List<Message> =
+internal fun List<Message>.mergeConsecutive(): List<Message> =
     fold(mutableListOf<Message>()) { turns, message ->
         val turn = turns.lastOrNull()
         if (turn != null && turn.messageType == message.messageType)
