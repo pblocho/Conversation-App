@@ -34,7 +34,7 @@ Dependency chain: `core` → `app:shared` → `app:androidApp` / `app:desktopApp
 
 - `core` — all business logic: networking, audio, conversation state. KMP targets: `jvm`, `androidLibrary`, `iosArm64`, `iosSimulatorArm64`.
 - `app:shared` — Compose UI + `ConversationViewModel`, shared across all app targets.
-- `server` — unrelated Ktor hello-world stub; do not confuse it with the real STT/TTS backends.
+- `server` — a **fake** STT/TTS backend (`E2eGrpcServer`, run with `:server:runE2eGrpcServer`) implementing the real proto contracts on the real ports, for the on-device test in `scripts/android_e2e.sh`. Not the production backend, but not a stub either — do not delete it.
 
 Logging goes through Kermit, via the tagged loggers in `core/.../Log.kt` (`Log.recorder`, `Log.player`, `Log.conversation`) — **no `println`**, which never reached Logcat on Android and carried no level. Failures log with the throwable (`Log.player.e(e) { … }`) so the stack trace survives.
 

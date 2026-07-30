@@ -67,7 +67,7 @@ core ──────────► app:shared ──────► androidA
 | `core` | State machine, repository, gRPC clients, audio capture and playback. Targets `jvm`, `android`, `iosArm64`, `iosSimulatorArm64`. |
 | `app:shared` | Compose Multiplatform UI and `ConversationViewModel`, shared by all three apps. |
 | `app:androidApp` · `desktopApp` · `iosApp` | Thin platform entry points. |
-| `server` | Unrelated Ktor hello-world stub; not part of the pipeline. |
+| `server` | A fake STT/TTS backend (`E2eGrpcServer`) speaking the real proto contracts, so the on-device test can run the whole pipeline without Whisper, an LLM or a GPU. |
 
 Layering is `ViewModel → ConversationManager → ConversationRepository → gRPC clients`.
 `ConversationRepository` is an interface, so the state machine is tested against a fake backend
@@ -136,17 +136,30 @@ The backends must then listen on `0.0.0.0` rather than loopback.
 ## Testing
 
 ```bash
-./gradlew :core:jvmTest                                            # everything below
-./gradlew :core:jvmTest --tests "com.pibi.conversation.manager.*"  # no hardware, no backends needed
+./gradlew :core:jvmTest :app:shared:jvmTest   # everything that needs no device
+./gradlew :core:iosSimulatorArm64Test         # the common tests, on Kotlin/Native
+./scripts/android_e2e.sh                      # the whole pipeline on a device or emulator
 ```
+
+Tests in `commonTest` run on **both** the JVM and Kotlin/Native, against fakes and virtual time, so
+they need neither hardware nor a backend:
 
 | Test | Covers |
 | --- | --- |
-| `ConversationStateMachineTest` | Every state in order, the loop, and Stop from any state — fake backend, virtual time. |
+| `ConversationStateMachineTest` | Every state in order, the loop, and Stop from any state. |
 | `ConversationResilienceTest` | Reconnection of either stream, a question surviving a reconnect, and that no turn starts while a backend is down. |
-| `AudioRecorderReleaseTest` | That the microphone is handed back between utterances (a regression test — see below). |
-| `SttGrpcSmokeTest` | The real gRPC stack against an in-process server. |
-| `ConversationEndToEndTest` | The whole pipeline against the real backends, driven by a recorded question. Skips itself when they are not running. |
+| `SpeechGateTest` | The loudness gate that decides speech from silence, including the sign handling that would make quiet audio look loud. |
+| `MergeConsecutiveTest` | Merging an answer's sentences into one turn, and keeping the list key stable while it grows. |
+
+The rest need something real:
+
+| Test | Needs | Covers |
+| --- | --- | --- |
+| `SttGrpcSmokeTest` · `TtsGrpcTest` | in-process gRPC server | Both clients over a real stream, including that a dropped stream reaches the collector instead of looking like a finished answer. |
+| `AudioRecorderReleaseTest` | a microphone | That the microphone is handed back between utterances (a regression test — see below). |
+| `StringResourcesTest` | — | That the strings resolve, in English and Polish. |
+| `ConversationEndToEndTest` | the real backends | The whole pipeline, driven by a recorded question. Skips itself when they are not running. |
+| `ConversationE2eTest` (Android) | a device + `scripts/android_e2e.sh` | Real `AudioRecord` capture, real gRPC over `adb reverse`, real `AudioTrack` playback — against the fake backend in `server/`. |
 
 ## Engineering notes
 
