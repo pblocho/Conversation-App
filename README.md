@@ -1,43 +1,176 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM), Server.
+# Conversation
 
-* [/app/iosApp](./app/iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+A hands-free voice assistant for **Android, iOS and Desktop**, sharing one Kotlin Multiplatform
+codebase — including the networking. You speak, it listens, transcribes, asks a local LLM, and
+speaks the answer back. No push-to-talk: the app runs a conversation loop that decides by itself
+when you have finished a sentence.
 
-* [/app/shared](./app/shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./app/shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./app/shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./app/shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+Everything runs locally — speech recognition, the language model and speech synthesis are all
+self-hosted, so no audio leaves the machine.
 
-* [/core](./core/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./core/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+```
+Kotlin 2.4 · Compose Multiplatform 1.11 · kotlinx-rpc gRPC (incl. Kotlin/Native) · coroutines & Flow
+```
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
-
-### Running the apps
-
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
-
-- Android app: `./gradlew :app:androidApp:assembleDebug`
-- Desktop app:
-  - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
-  - Standard run: `./gradlew :app:desktopApp:run`
-- Server: `./gradlew :server:run`
-- iOS app: open the [/app/iosApp](./app/iosApp) directory in Xcode and run it from there.
-
-### Running tests
-
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
-
-- Android tests: `./gradlew :app:shared:testAndroidHostTest`
-- Desktop tests: `./gradlew :app:shared:jvmTest`
-- Server tests: `./gradlew :server:test`
-- iOS tests: `./gradlew :app:shared:iosSimulatorArm64Test`
+> **The part worth looking at:** the entire pipeline — bidirectional gRPC streaming, the audio
+> pipeline and the conversation state machine — lives in `commonMain`. `expect/actual` is used only
+> where the hardware genuinely differs: microphone capture and WAV playback.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## What it does
+
+```mermaid
+flowchart LR
+    MIC["🎙 Microphone"] -->|"16 kHz PCM"| STT["STT service<br/>faster-whisper"]
+    STT -->|"transcript"| LLM["LLM<br/>Ollama / Qwen"]
+    LLM -->|"sentence"| TTS["TTS service<br/>Kokoro"]
+    TTS -->|"WAV + text"| APP["📱 App"]
+    APP --> MIC
+```
+
+The app records until you fall silent, sends the utterance for transcription, forwards the text to
+a locally hosted LLM, then plays each sentence of the reply as it is synthesized — showing the same
+text on screen as it speaks. Then it starts listening again.
+
+## The conversation loop
+
+The core of the app is an explicit state machine (`ConversationState`) that runs forever. A single
+**Stop** button cancels the turn in flight; the machine drops back to `Idle` and starts listening
+again on its own.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Init
+    Init --> Idle: streams opened
+    Idle --> RecordingAudio: backends healthy
+    RecordingAudio --> SendToStt: 1.3 s of silence
+    SendToStt --> WaitForTextForLlm
+    WaitForTextForLlm --> SendTextToLlm: transcript
+    WaitForTextForLlm --> Idle: nothing recognized
+    SendTextToLlm --> WaitForAudioAndTextFromLlm
+    WaitForAudioAndTextFromLlm --> Idle: answer spoken
+```
+
+Because the loop is linear, the microphone is only open during `RecordingAudio` — the assistant
+cannot hear its own playback and mistake it for the next question.
+
+## Architecture
+
+```
+core ──────────► app:shared ──────► androidApp / desktopApp / iosApp
+(domain)         (Compose UI)       (entry points, 12–44 lines each)
+```
+
+| Module | Contains |
+| --- | --- |
+| `core` | State machine, repository, gRPC clients, audio capture and playback. Targets `jvm`, `android`, `iosArm64`, `iosSimulatorArm64`. |
+| `app:shared` | Compose Multiplatform UI and `ConversationViewModel`, shared by all three apps. |
+| `app:androidApp` · `desktopApp` · `iosApp` | Thin platform entry points. |
+| `server` | Unrelated Ktor hello-world stub; not part of the pipeline. |
+
+Layering is `ViewModel → ConversationManager → ConversationRepository → gRPC clients`.
+`ConversationRepository` is an interface, so the state machine is tested against a fake backend
+with no network and no hardware.
+
+**Platform-specific code is confined to three small files per platform:** `AudioRecorder`,
+`AudioPlayer` and `randomUuid`. All are real implementations — `AudioRecord`/`AudioTrack` on
+Android, `AVAudioEngine`/`AVAudioPlayer` on iOS (resampling 48 kHz Float32 down to the 16 kHz Int16
+the backend expects), and `javax.sound.sampled` on the JVM.
+
+## Running it
+
+### 1. Backends
+
+Two gRPC services plus a local LLM, all on `localhost`:
+
+| Service | Port | Runs |
+| --- | --- | --- |
+| STT | 8001 | [faster-whisper](https://github.com/SYSTRAN/faster-whisper) `large-v3-turbo` |
+| TTS | 8000 | [Kokoro](https://github.com/hexgrad/kokoro), driven by an LLM through Ollama's OpenAI-compatible API |
+| Ollama | 11434 | e.g. `qwen2.5:14b-instruct-q8_0` |
+
+They live in a separate Python project and are not part of this repository. Any implementation of
+[`stt.proto`](core/src/commonMain/proto/stt.proto) and [`tts.proto`](core/src/commonMain/proto/tts.proto)
+will do:
+
+```protobuf
+service SttService { rpc Transcribe(stream AudioChunk) returns (stream Transcript); }
+service TtsService { rpc Synthesize(stream TextPiece)  returns (stream AudioData); }
+```
+
+Two things the contract does not show, but the app depends on:
+
+- An `AudioChunk` with `end_of_utterance = true` is what makes the backend transcribe.
+- Each `Synthesize` stream is **one conversation** — the backend keeps the LLM chat history per
+  stream, which is why the app holds a single stream open for the whole session instead of
+  reconnecting per turn.
+
+### 2. Apps
+
+```bash
+./gradlew :app:desktopApp:run              # Desktop (hot reload: :app:desktopApp:hotRun --auto)
+./gradlew :app:androidApp:assembleDebug    # Android APK
+# iOS: open app/iosApp in Xcode and run from there
+```
+
+Desktop works as-is. On a **device or emulator**, `127.0.0.1` is the phone itself — point
+`AppConfig.SERVER_HOST` at `10.0.2.2` (Android emulator) or your machine's LAN address first.
+
+## Testing
+
+```bash
+./gradlew :core:jvmTest                                            # everything below
+./gradlew :core:jvmTest --tests "com.pibi.conversation.manager.*"  # no hardware, no backends needed
+```
+
+| Test | Covers |
+| --- | --- |
+| `ConversationStateMachineTest` | Every state in order, the loop, and Stop from any state — fake backend, virtual time. |
+| `ConversationResilienceTest` | Reconnection of either stream, a question surviving a reconnect, and that no turn starts while a backend is down. |
+| `AudioRecorderReleaseTest` | That the microphone is handed back between utterances (a regression test — see below). |
+| `SttGrpcSmokeTest` | The real gRPC stack against an in-process server. |
+| `ConversationEndToEndTest` | The whole pipeline against the real backends, driven by a recorded question. Skips itself when they are not running. |
+
+## Engineering notes
+
+Four decisions and one bug that shaped this code:
+
+**gRPC from Kotlin/Native.** Networking lives in `commonMain`, iOS included, using kotlinx-rpc dev
+builds (`0.11.0-grpc-189`) — the stable release is JVM-only. The API is experimental and
+version-locked: the `grpc-java` version has to match the one kotlinx-rpc bundles exactly, or it
+compiles cleanly and throws `AbstractMethodError` at runtime.
+
+**One stream per session, not per turn.** The backend keeps the LLM's memory per stream, so the app
+holds both streams open for the whole conversation. Everything the streams produce is funneled into
+channels, so each state picks up the event it expects rather than racing a shared collector.
+
+**Streams are supervised.** Both clients originally swallowed failures with
+`catch (Exception) { println(...) }`, so a backend restart ended the collector *normally* — and
+questions were then dropped into a `SharedFlow` with no subscriber. The session was dead with no
+error shown, every turn silently timing out. Now failures propagate, streams reconnect with
+exponential backoff, health is reported in the UI, and questions wait on a `Channel` until the
+stream is back.
+
+**Cooperative cancellation is not free.** The JVM recorder read audio in a `while (true)` loop using
+`trySend`. Neither suspends, so cancellation never took effect: the `TargetDataLine` leaked, and
+every later recording blocked forever on a device that would never deliver. The app sat on
+"Listening…" with no error. The fix — `isActive`, a suspending `send`, and closing the line in
+`awaitClose` — ships with a regression test that fails against the old code.
+
+**One heuristic remains.** The TTS contract carries no end-of-answer marker, so the app treats a gap
+in the audio stream as "the assistant stopped talking". Adding a marker to the proto would turn that
+guess into a fact.
+
+## Repository layout
+
+```
+core/src/
+  commonMain/            state machine, repository, gRPC clients, proto contracts
+  {android,ios,jvm}Main/ microphone capture and WAV playback
+  commonTest/            state machine and resilience tests (fakes, virtual time)
+  jvmTest/               gRPC smoke test, end-to-end test, microphone regression test
+app/
+  shared/                Compose UI + ViewModel
+  androidApp/ desktopApp/ iosApp/   platform entry points
+```
