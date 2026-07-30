@@ -206,6 +206,13 @@ Microphone access is requested properly on every platform: `RECORD_AUDIO` at run
 without which macOS terminates the app the moment it opens the microphone. iOS needs no App
 Transport Security exception, because gRPC does not go through `NSURLSession`.
 
+## License
+
+Copyright © 2026 Piotr Błochowiak. All rights reserved — see [LICENSE](LICENSE).
+
+Published for portfolio review: read it, run it locally, but it is not open source and no
+permission is granted to reuse it.
+
 ## Repository layout
 
 ```
