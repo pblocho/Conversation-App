@@ -7,7 +7,11 @@ data class ConversationUiState(
     val state: ConversationState = ConversationState.Init,
     val connection: ConnectionState = ConnectionState(),
     val currentVolume: Double = 0.0,
-    val statusText: String = "Ready"
+    /**
+     * Why the last turn failed, straight from the failure — not a message for the user to read.
+     * The UI decides how (and whether) to word it.
+     */
+    val turnError: String? = null
 )
 {
     val isRecording: Boolean get() = state == ConversationState.RecordingAudio

@@ -18,6 +18,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pibi.conversation.data.model.Message
 import com.pibi.conversation.data.model.MessageType
 import com.pibi.conversation.manager.ConnectionState
+import com.pibi.conversation.manager.ConversationState
+import conversation.app.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 @Preview
@@ -38,10 +41,19 @@ fun App(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "Status: ${uiState.statusText}",
+                text = stringResource(Res.string.status_format, uiState.state.label()),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(8.dp)
             )
+
+            uiState.turnError?.let { error ->
+                Text(
+                    text = stringResource(Res.string.turn_error, error),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
 
             if (!uiState.connection.isReady)
             {
@@ -71,21 +83,44 @@ fun App(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Button(onClick = viewModel::onStopClicked) {
-                    Text("Stop")
+                    Text(stringResource(Res.string.stop))
                 }
             }
         }
     }
 }
 
-/** Tells the user which backend is missing while the manager reconnects to it. */
+/**
+ * What each step of the conversation is called on screen. Wording lives in the UI, not in `core`,
+ * and comes from string resources so it follows the reader's language.
+ */
+@Composable
+private fun ConversationState.label(): String = when (this)
+{
+    ConversationState.Init -> stringResource(Res.string.state_connecting)
+    ConversationState.Idle -> stringResource(Res.string.state_idle)
+    ConversationState.RecordingAudio -> stringResource(Res.string.state_listening)
+    ConversationState.SendToStt -> stringResource(Res.string.state_sending_audio)
+    ConversationState.WaitForTextForLlm -> stringResource(Res.string.state_recognizing)
+    ConversationState.SendTextToLlm -> stringResource(Res.string.state_asking)
+    ConversationState.WaitForAudioAndTextFromLlm -> stringResource(Res.string.state_answering)
+}
+
+/**
+ * Tells the user which backend is missing while the manager reconnects to it.
+ *
+ * One whole sentence per case instead of a stem plus a joined list: Polish puts the object of
+ * "łączenie z" in the instrumental case, so a sentence built from fragments would be ungrammatical.
+ */
 @Composable
 private fun ConnectionBanner(connection: ConnectionState)
 {
-    val missing = buildList {
-        if (!connection.sttUp) add("speech recognition")
-        if (!connection.ttsUp) add("the assistant")
-    }.joinToString(" and ")
+    val message = when
+    {
+        !connection.sttUp && !connection.ttsUp -> stringResource(Res.string.reconnecting_both)
+        !connection.sttUp -> stringResource(Res.string.reconnecting_speech_recognition)
+        else -> stringResource(Res.string.reconnecting_assistant)
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
@@ -93,7 +128,7 @@ private fun ConnectionBanner(connection: ConnectionState)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = "Reconnecting to $missing…",
+                text = message,
                 style = MaterialTheme.typography.bodyMedium
             )
             connection.lastError?.let { error ->

@@ -1,0 +1,20 @@
+<resources>
+    <string name="status_format">Status: %1$s</string>
+
+    <!-- First person, as the assistant speaking: "Słucham…", "Pytam…", "Odpowiadam…". -->
+    <string name="state_connecting">Łączenie…</string>
+    <string name="state_idle">Gotowy</string>
+    <string name="state_listening">Słucham…</string>
+    <string name="state_sending_audio">Wysyłanie nagrania…</string>
+    <string name="state_recognizing">Rozpoznawanie mowy…</string>
+    <string name="state_asking">Pytam…</string>
+    <string name="state_answering">Odpowiadam…</string>
+
+    <string name="stop">Zatrzymaj</string>
+    <string name="turn_error">Coś poszło nie tak: %1$s</string>
+
+    <!-- "z" takes the instrumental case, which is exactly why these are whole sentences. -->
+    <string name="reconnecting_speech_recognition">Ponowne łączenie z rozpoznawaniem mowy…</string>
+    <string name="reconnecting_assistant">Ponowne łączenie z asystentem…</string>
+    <string name="reconnecting_both">Ponowne łączenie z rozpoznawaniem mowy i asystentem…</string>
+</resources>

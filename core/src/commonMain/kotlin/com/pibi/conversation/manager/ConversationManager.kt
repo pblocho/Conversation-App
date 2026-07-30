@@ -257,6 +257,8 @@ class ConversationManager(
                     ConversationState.Idle ->
                     {
                         discardStaleEvents()
+                        // Whatever went wrong last turn is history once a new one gets going.
+                        _uiState.update { it.copy(turnError = null) }
                         awaitBackendsReady()
                         ConversationState.RecordingAudio
                     }
@@ -303,7 +305,7 @@ class ConversationManager(
             // One broken turn must not end the conversation; pause so a lasting failure
             // (no microphone, for instance) cannot spin the loop.
             println("Conversation turn failed: ${failure.message}")
-            _uiState.update { it.copy(statusText = "Error: ${failure.message}") }
+            _uiState.update { it.copy(turnError = failure.message ?: failure::class.simpleName) }
             delay(RETRY_AFTER_FAILURE)
         }
     }
@@ -390,7 +392,7 @@ class ConversationManager(
 
     private fun transitionTo(state: ConversationState)
     {
-        _uiState.update { it.copy(state = state, statusText = state.statusText()) }
+        _uiState.update { it.copy(state = state) }
     }
 
     private fun addMessage(text: String, messageType: MessageType)
@@ -400,14 +402,4 @@ class ConversationManager(
         }
     }
 
-    private fun ConversationState.statusText(): String = when (this)
-    {
-        ConversationState.Init -> "Connecting..."
-        ConversationState.Idle -> "Idle"
-        ConversationState.RecordingAudio -> "Listening..."
-        ConversationState.SendToStt -> "Sending audio..."
-        ConversationState.WaitForTextForLlm -> "Recognizing speech..."
-        ConversationState.SendTextToLlm -> "Asking..."
-        ConversationState.WaitForAudioAndTextFromLlm -> "Answering..."
-    }
 }

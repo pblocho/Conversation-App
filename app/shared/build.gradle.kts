@@ -54,6 +54,11 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmTest.dependencies {
+            // Resolving a string resource outside a running UI still initializes Skiko, which
+            // needs the desktop runtime for the host OS.
+            implementation(compose.desktop.currentOs)
+        }
     }
 }
 

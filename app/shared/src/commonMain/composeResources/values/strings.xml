@@ -1,0 +1,23 @@
+<resources>
+    <string name="status_format">Status: %1$s</string>
+
+    <!-- One per ConversationState, in the order the conversation walks them. -->
+    <string name="state_connecting">Connecting…</string>
+    <string name="state_idle">Idle</string>
+    <string name="state_listening">Listening…</string>
+    <string name="state_sending_audio">Sending audio…</string>
+    <string name="state_recognizing">Recognizing speech…</string>
+    <string name="state_asking">Asking…</string>
+    <string name="state_answering">Answering…</string>
+
+    <string name="stop">Stop</string>
+    <string name="turn_error">Something went wrong: %1$s</string>
+
+    <!--
+      Complete sentences rather than a stem plus a list of backend names: languages that inflect
+      the object of "reconnecting to" cannot be assembled from fragments.
+    -->
+    <string name="reconnecting_speech_recognition">Reconnecting to speech recognition…</string>
+    <string name="reconnecting_assistant">Reconnecting to the assistant…</string>
+    <string name="reconnecting_both">Reconnecting to speech recognition and the assistant…</string>
+</resources>
