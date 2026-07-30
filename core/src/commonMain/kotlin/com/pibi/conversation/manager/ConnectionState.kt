@@ -1,5 +1,7 @@
 package com.pibi.conversation.manager
 
+import androidx.compose.runtime.Immutable
+
 /**
  * Health of the two backend streams, as far as the app can tell.
  *
@@ -8,6 +10,7 @@ package com.pibi.conversation.manager
  * guarantee. A stream that turns out to be dead fails on first use and flips back to down, and
  * the manager reconnects it.
  */
+@Immutable
 data class ConnectionState(
     val sttUp: Boolean = false,
     val ttsUp: Boolean = false,

@@ -100,6 +100,17 @@ class ConversationManager(
     private val _uiState = MutableStateFlow(ConversationUiState())
     val uiState: StateFlow<ConversationUiState> = _uiState.asStateFlow()
 
+    private val _microphoneLevel = MutableStateFlow(0.0)
+
+    /**
+     * How loud the microphone is right now, as raw RMS amplitude, updated once per audio chunk
+     * (~8 times a second while recording).
+     *
+     * Deliberately not part of [uiState]: at that rate it would invalidate the whole screen
+     * several times a second. On its own stream, only whatever draws the level redraws.
+     */
+    val microphoneLevel: StateFlow<Double> = _microphoneLevel.asStateFlow()
+
     /** Audio handed to the STT stream, one utterance at a time. */
     private val sttRequests = Channel<ByteArray>(Channel.BUFFERED)
 
@@ -337,8 +348,7 @@ class ConversationManager(
         var silentChunks = 0
 
         recordAudio().onEach { chunk ->
-            // How loud the microphone is right now, for whatever the UI wants to draw with it.
-            _uiState.update { it.copy(currentVolume = if (chunk.isEmpty()) 0.0 else rms(chunk)) }
+            _microphoneLevel.value = if (chunk.isEmpty()) 0.0 else rms(chunk)
         }.takeWhile { chunk ->
             when
             {
@@ -361,7 +371,7 @@ class ConversationManager(
         }.collect { }
 
         // The microphone is closed now, so nothing is arriving to keep the level honest.
-        _uiState.update { it.copy(currentVolume = 0.0) }
+        _microphoneLevel.value = 0.0
         return utterance
     }
 

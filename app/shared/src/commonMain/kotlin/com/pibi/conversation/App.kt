@@ -15,7 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.StateFlow
 import com.pibi.conversation.data.model.Message
 import com.pibi.conversation.data.model.MessageType
 import com.pibi.conversation.manager.ConnectionState
@@ -29,7 +31,8 @@ fun App(
     viewModel: ConversationViewModel = viewModel { ConversationViewModel() }
 )
 {
-    val uiState by viewModel.uiState.collectAsState()
+    // Lifecycle-aware: collection stops while the app is in the background.
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     // The backend answers one message per sentence; merge them so a whole turn is one card.
     val turns = remember(uiState.messages) { uiState.messages.mergeConsecutive() }
 
@@ -49,7 +52,7 @@ fun App(
 
             if (uiState.isRecording)
             {
-                MicrophoneLevel(uiState.currentVolume)
+                MicrophoneLevel(viewModel.microphoneLevel)
             }
 
             uiState.turnError?.let { error ->
@@ -73,7 +76,10 @@ fun App(
             ) {
                 items(
                     items = turns,
-                    key = { it.id }
+                    key = { it.id },
+                    // Questions and answers are laid out alike, so Compose can reuse one's
+                    // composition for the other instead of building it from scratch.
+                    contentType = { it.messageType }
                 ) { msg ->
                     when (msg.messageType)
                     {
@@ -99,13 +105,17 @@ fun App(
 /**
  * How loud the microphone is hearing you, so it is obvious the app is listening rather than stuck.
  *
- * [volume] is the raw RMS amplitude of 16-bit audio, which is `core`'s business; turning it into a
- * fraction of a bar is this layer's. Speech sits well below full scale, so the bar is scaled to a
- * conversational level rather than to 32767.
+ * Takes the flow rather than a value, and collects it here: the level changes about eight times a
+ * second, and reading it any higher up would redraw the whole screen at that rate.
+ *
+ * The flow carries the raw RMS amplitude of 16-bit audio, which is `core`'s business; turning it
+ * into a fraction of a bar is this layer's. Speech sits well below full scale, so the bar fills at
+ * a conversational level rather than at 32767.
  */
 @Composable
-private fun MicrophoneLevel(volume: Double)
+private fun MicrophoneLevel(levels: StateFlow<Double>)
 {
+    val volume by levels.collectAsStateWithLifecycle()
     val level = (volume / SPEAKING_LEVEL).coerceIn(0.0, 1.0).toFloat()
 
     LinearProgressIndicator(

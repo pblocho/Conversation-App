@@ -12,6 +12,9 @@ class ConversationViewModel : ViewModel() {
     private val manager = ConversationManager(GrpcConversationRepository())
     val uiState = manager.uiState
 
+    /** Kept apart from [uiState] so its ~8 Hz updates only redraw the level meter. */
+    val microphoneLevel = manager.microphoneLevel
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             manager.startConversation()
