@@ -81,10 +81,11 @@ fun App(
                     // composition for the other instead of building it from scratch.
                     contentType = { it.messageType }
                 ) { msg ->
+                    val bubble = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                     when (msg.messageType)
                     {
-                        MessageType.QUESTION -> Question(msg)
-                        MessageType.ANSWER -> Answer(msg)
+                        MessageType.QUESTION -> Question(msg, bubble)
+                        MessageType.ANSWER -> Answer(msg, bubble)
                     }
                 }
             }

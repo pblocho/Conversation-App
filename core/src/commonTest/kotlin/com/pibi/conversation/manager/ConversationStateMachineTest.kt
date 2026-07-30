@@ -8,9 +8,6 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -24,16 +21,12 @@ import kotlin.test.assertEquals
 /** Backend stand-in: answers every finished utterance with a transcript, and every question with speech. */
 private class FakeRepository : ConversationRepository
 {
-    private val _transcripts = MutableSharedFlow<String>()
-    override val transcripts: SharedFlow<String> = _transcripts.asSharedFlow()
-
     val questionsAsked = mutableListOf<String>()
 
-    override suspend fun transcribe(audioSource: Flow<ByteArray>)
-    {
+    override fun transcribe(audioSource: Flow<ByteArray>): Flow<String> = flow {
         audioSource.collect { chunk ->
             // Like the real backend: transcribe once the end-of-utterance marker arrives.
-            if (chunk.isEmpty()) _transcripts.emit(" What is the weather?")
+            if (chunk.isEmpty()) emit(" What is the weather?")
         }
     }
 

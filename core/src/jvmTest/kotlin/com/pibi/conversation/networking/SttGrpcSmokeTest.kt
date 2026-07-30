@@ -64,12 +64,12 @@ class SttGrpcSmokeTest {
 
         val client = SttClient(port = port)
         try {
-            val transcripts = async { client.textOutputFlow.take(2).toList() }
-            delay(200) // let the collector subscribe before streaming starts
+            // One collection is one stream, so there is no window in which a transcript could be
+            // emitted before anyone is listening.
+            val received = withTimeout(15_000) {
+                client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))).take(2).toList()
+            }
 
-            launch { client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))) }
-
-            val received = withTimeout(15_000) { transcripts.await() }
             assertEquals(listOf("3 bytes", "end"), received)
         } finally {
             client.shutdown()
@@ -100,7 +100,7 @@ class SttGrpcSmokeTest {
                         byteArrayOf(4, 5),      // speech again
                         ByteArray(0)            // silence  -> end of utterance
                     )
-                )
+                ).collect { }
             }
 
             // The backend transcribes on every end_of_utterance, so repeating the marker through

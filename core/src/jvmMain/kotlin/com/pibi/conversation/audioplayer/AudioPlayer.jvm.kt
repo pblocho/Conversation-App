@@ -1,6 +1,8 @@
 package com.pibi.conversation.audioplayer
 
 import com.pibi.conversation.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.AudioInputStream
@@ -9,8 +11,7 @@ import javax.sound.sampled.DataLine
 
 actual object AudioPlayer
 {
-    actual fun playWavBytes(wavBytes: ByteArray)
-    {
+    actual suspend fun playWavBytes(wavBytes: ByteArray) = withContext(Dispatchers.IO) {
         try
         {
             val byteArrayInputStream = ByteArrayInputStream(wavBytes)

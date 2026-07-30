@@ -5,16 +5,17 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import com.pibi.conversation.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 actual object AudioPlayer
 {
-    actual fun playWavBytes(wavBytes: ByteArray)
-    {
+    actual suspend fun playWavBytes(wavBytes: ByteArray) = withContext(Dispatchers.IO) {
         try
         {
-            if (wavBytes.size <= 44) return
+            if (wavBytes.size <= 44) return@withContext
 
             val header = ByteBuffer.wrap(wavBytes).order(ByteOrder.LITTLE_ENDIAN)
             val channels = header.getShort(22).toInt()
@@ -40,7 +41,7 @@ actual object AudioPlayer
             if (dataOffset < 0 || dataSize <= 0)
             {
                 Log.player.e { "Could not play the answer audio (Android): no data chunk in the WAV" }
-                return
+                return@withContext
             }
 
             val channelMask = if (channels == 2) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO

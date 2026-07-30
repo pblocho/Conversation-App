@@ -1,6 +1,9 @@
 package com.pibi.conversation.audioplayer
 
 import com.pibi.conversation.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -13,11 +16,10 @@ import platform.posix.usleep
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual object AudioPlayer
 {
-    actual fun playWavBytes(wavBytes: ByteArray)
-    {
+    actual suspend fun playWavBytes(wavBytes: ByteArray) = withContext(Dispatchers.IO) {
         try
         {
-            if (wavBytes.isEmpty()) return
+            if (wavBytes.isEmpty()) return@withContext
 
             val data = wavBytes.usePinned { pinned ->
                 NSData.create(bytes = pinned.addressOf(0), length = wavBytes.size.toULong())

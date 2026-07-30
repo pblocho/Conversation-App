@@ -5,9 +5,9 @@ import com.pibi.conversation.grpc.AudioChunk
 import com.pibi.conversation.grpc.SttService
 import com.pibi.conversation.grpc.invoke
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.io.bytestring.ByteString
 import kotlinx.rpc.grpc.client.GrpcClient
 import kotlinx.rpc.withService
@@ -24,19 +24,19 @@ class SttClient(
         credentials = plaintext()
     }
 
-    private val _textOutputFlow = MutableSharedFlow<String>()
-    val textOutputFlow = _textOutputFlow.asSharedFlow()
-
     /** Releases the underlying gRPC channel. */
     fun shutdown() = client.shutdown()
 
     /**
-     * Streams microphone audio to the STT backend and emits transcripts on [textOutputFlow].
-     * Returns when the server closes the stream and **throws when the stream fails** — the
-     * caller owns reconnection policy, because only it knows what a lost stream means for
-     * the conversation.
+     * Streams microphone audio to the STT backend and emits each transcript it sends back.
+     *
+     * The transcripts are the return value rather than a property the client keeps: one call is
+     * one stream, so there is no shared state to leak between calls, and nothing can be emitted
+     * before the caller is listening. Collection ends when the backend closes the stream and
+     * **fails when the stream fails** — the caller owns reconnection policy, because only it knows
+     * what a lost stream means for the conversation.
      */
-    suspend fun streamAudioToStt(audioSource: Flow<ByteArray>) {
+    fun streamAudioToStt(audioSource: Flow<ByteArray>): Flow<String> = flow {
         val service = client.withService<SttService>()
 
         val requests = flow {
@@ -54,8 +54,6 @@ class SttClient(
             }
         }
 
-        service.Transcribe(requests).collect { transcript ->
-            _textOutputFlow.emit(transcript.text)
-        }
+        emitAll(service.Transcribe(requests).map { it.text })
     }
 }

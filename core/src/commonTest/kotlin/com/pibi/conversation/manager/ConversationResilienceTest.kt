@@ -6,9 +6,6 @@ import com.pibi.conversation.data.repository.ConversationRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -31,21 +28,17 @@ private class FlakyRepository(
     private val ttsFailures: Int = 0
 ) : ConversationRepository
 {
-    private val _transcripts = MutableSharedFlow<String>()
-    override val transcripts: SharedFlow<String> = _transcripts.asSharedFlow()
-
     var sttAttempts = 0
         private set
     var ttsAttempts = 0
         private set
     val questionsAsked = mutableListOf<String>()
 
-    override suspend fun transcribe(audioSource: Flow<ByteArray>)
-    {
+    override fun transcribe(audioSource: Flow<ByteArray>): Flow<String> = flow {
         if (sttAttempts++ < sttFailures) throw IllegalStateException("stt stream lost")
 
         audioSource.collect { chunk ->
-            if (chunk.isEmpty()) _transcripts.emit(" Are you still there?")
+            if (chunk.isEmpty()) emit(" Are you still there?")
         }
     }
 

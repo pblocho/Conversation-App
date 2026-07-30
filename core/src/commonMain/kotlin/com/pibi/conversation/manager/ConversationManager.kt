@@ -55,7 +55,7 @@ import kotlin.time.Duration.Companion.seconds
 class ConversationManager(
     private val repository: ConversationRepository,
     private val recordAudio: () -> Flow<ByteArray> = { AudioRecorder.startRecording() },
-    private val playAudio: (ByteArray) -> Unit = { AudioPlayer.playWavBytes(it) },
+    private val playAudio: suspend (ByteArray) -> Unit = { AudioPlayer.playWavBytes(it) },
     /** Where the streams are collected and the blocking playback runs; swapped out in tests. */
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 )
@@ -167,9 +167,6 @@ class ConversationManager(
     {
         transitionTo(ConversationState.Init)
 
-        // Transcripts arrive on a hot flow the STT client owns, so this outlives any one stream.
-        scope.launch(ioDispatcher) { repository.transcripts.collect { transcripts.send(it) } }
-
         scope.launch(ioDispatcher) {
             keepConnected({ up, error -> markConnection(error) { it.copy(sttUp = up) } }) {
                 // Audio left over from a dropped stream is half an utterance; a fresh stream
@@ -177,7 +174,7 @@ class ConversationManager(
                 while (sttRequests.tryReceive().isSuccess)
                 {
                 }
-                repository.transcribe(sttRequests.receiveAsFlow())
+                repository.transcribe(sttRequests.receiveAsFlow()).collect { transcripts.send(it) }
             }
         }
 
@@ -410,7 +407,8 @@ class ConversationManager(
         {
             val speech = withTimeoutOrNull(timeout) { answers.receive() } ?: break
             addMessage(speech.text, MessageType.ANSWER)
-            withContext(ioDispatcher) { playAudio(speech.audioWavBytes) }
+            // No withContext here: playback confines its own blocking work.
+            playAudio(speech.audioWavBytes)
             timeout = ANSWER_COMPLETE_TIMEOUT
         }
     }

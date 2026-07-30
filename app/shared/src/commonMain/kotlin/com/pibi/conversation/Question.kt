@@ -1,6 +1,5 @@
 package com.pibi.conversation
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -11,14 +10,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pibi.conversation.data.model.Message
 
+/** What was heard from the speaker. Size and spacing are the caller's to decide, hence [modifier]. */
 @Composable
 fun Question(
-    message: Message
+    message: Message,
+    modifier: Modifier = Modifier
 )
 {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-        modifier = Modifier.fillMaxWidth().padding(16.dp)
+        modifier = modifier
     ) {
         Text(message.text, modifier = Modifier.padding(16.dp))
     }
