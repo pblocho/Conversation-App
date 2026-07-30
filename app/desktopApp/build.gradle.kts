@@ -23,7 +23,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             // Matches the Android and iOS apps, and reads better than a package id in Finder.
             packageName = "Conversation"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
 
             macOS {
                 bundleID = "com.pibi.conversation"
