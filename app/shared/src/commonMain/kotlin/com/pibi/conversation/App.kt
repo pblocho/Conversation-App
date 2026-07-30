@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -45,6 +46,11 @@ fun App(
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(8.dp)
             )
+
+            if (uiState.isRecording)
+            {
+                MicrophoneLevel(uiState.currentVolume)
+            }
 
             uiState.turnError?.let { error ->
                 Text(
@@ -89,6 +95,27 @@ fun App(
         }
     }
 }
+
+/**
+ * How loud the microphone is hearing you, so it is obvious the app is listening rather than stuck.
+ *
+ * [volume] is the raw RMS amplitude of 16-bit audio, which is `core`'s business; turning it into a
+ * fraction of a bar is this layer's. Speech sits well below full scale, so the bar is scaled to a
+ * conversational level rather than to 32767.
+ */
+@Composable
+private fun MicrophoneLevel(volume: Double)
+{
+    val level = (volume / SPEAKING_LEVEL).coerceIn(0.0, 1.0).toFloat()
+
+    LinearProgressIndicator(
+        progress = { level },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+    )
+}
+
+/** RMS of comfortable speech, which fills the meter. */
+private const val SPEAKING_LEVEL = 6000.0
 
 /**
  * What each step of the conversation is called on screen. Wording lives in the UI, not in `core`,

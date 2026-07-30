@@ -143,9 +143,26 @@ class ConversationStateMachineTest
         manager.stop()
 
         assertEquals(
-            listOf(ConversationState.Init, ConversationState.Idle, ConversationState.RecordingAudio),
-            List(3) { states.receive() },
+            // No Init: opening the session happens once, not on every turn.
+            listOf(ConversationState.Idle, ConversationState.RecordingAudio),
+            List(2) { states.receive() },
             "stop() should end the turn and let the machine start listening again by itself"
+        )
+    }
+
+    @Test
+    fun initIsPassedOncePerSessionRatherThanEveryTurn() = runTest {
+        val manager = manager()
+        val states = statesOf(manager)
+        backgroundScope.launch { manager.startConversation() }
+
+        // Two full turns' worth of states, which used to contain two Inits.
+        val seen = List(16) { states.receive() }
+
+        assertEquals(
+            1,
+            seen.count { it == ConversationState.Init },
+            "Init is opening the session, not a step of a turn; saw: $seen"
         )
     }
 
@@ -160,8 +177,8 @@ class ConversationStateMachineTest
         manager.stop()
 
         assertEquals(
-            listOf(ConversationState.Init, ConversationState.Idle, ConversationState.RecordingAudio),
-            List(3) { states.receive() },
+            listOf(ConversationState.Idle, ConversationState.RecordingAudio),
+            List(2) { states.receive() },
             "stopping mid-recording should start a fresh utterance"
         )
     }

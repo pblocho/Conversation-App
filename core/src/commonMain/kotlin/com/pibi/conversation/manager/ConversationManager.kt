@@ -3,6 +3,7 @@ package com.pibi.conversation.manager
 import com.pibi.conversation.Log
 import com.pibi.conversation.audioplayer.AudioPlayer
 import com.pibi.conversation.audiorecorder.AudioRecorder
+import com.pibi.conversation.audiorecorder.rms
 import com.pibi.conversation.data.model.Message
 import com.pibi.conversation.data.model.MessageType
 import com.pibi.conversation.data.model.SynthesizedSpeech
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
@@ -28,6 +30,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.concurrent.Volatile
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -113,7 +116,11 @@ class ConversationManager(
     /** Answer sentences (text plus audio) coming back from the LLM/TTS stream. */
     private val answers = Channel<SynthesizedSpeech>(Channel.UNLIMITED)
 
-    /** The turn currently being run, so [stop] can cancel it. */
+    /**
+     * The turn currently being run, so [stop] can cancel it. Written by the conversation coroutine
+     * and read from whichever thread taps Stop, so the write has to be visible across both.
+     */
+    @Volatile
     private var currentTurn: Job? = null
 
     /**
@@ -237,13 +244,14 @@ class ConversationManager(
     /**
      * Walks the states forever: every turn ends back at [ConversationState.Idle] and the next one
      * starts from there. Only [stop] (cancellation) or a failure ends the run, and
-     * [startConversation] then begins a new one at [ConversationState.Init].
+     * [startConversation] then begins a new one — again from [ConversationState.Idle], since
+     * [ConversationState.Init] belongs to opening the session and happens once.
      */
     private suspend fun runTurn()
     {
         var utterance: List<ByteArray> = emptyList()
         var question = ""
-        var state = ConversationState.Init
+        var state = ConversationState.Idle
 
         try
         {
@@ -253,6 +261,7 @@ class ConversationManager(
                 state = when (state)
                 {
 
+                    // Set by openSession, never reached from inside a turn.
                     ConversationState.Init -> ConversationState.Idle
 
                     ConversationState.Idle ->
@@ -327,7 +336,10 @@ class ConversationManager(
         val utterance = mutableListOf<ByteArray>()
         var silentChunks = 0
 
-        recordAudio().takeWhile { chunk ->
+        recordAudio().onEach { chunk ->
+            // How loud the microphone is right now, for whatever the UI wants to draw with it.
+            _uiState.update { it.copy(currentVolume = if (chunk.isEmpty()) 0.0 else rms(chunk)) }
+        }.takeWhile { chunk ->
             when
             {
                 chunk.isNotEmpty() ->
@@ -348,6 +360,8 @@ class ConversationManager(
             }
         }.collect { }
 
+        // The microphone is closed now, so nothing is arriving to keep the level honest.
+        _uiState.update { it.copy(currentVolume = 0.0) }
         return utterance
     }
 
