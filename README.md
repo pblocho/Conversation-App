@@ -178,6 +178,34 @@ every later recording blocked forever on a device that would never deliver. The 
 in the audio stream as "the assistant stopped talking". Adding a marker to the proto would turn that
 guess into a fact.
 
+## Security (and what production would need)
+
+This runs as a **local development setup**, and its trust boundary is your own machine. Worth being
+explicit about, since the choices below are deliberate rather than overlooked:
+
+| Today | Why it is acceptable here | What production needs |
+| --- | --- | --- |
+| gRPC over plaintext (`credentials = plaintext()`) | Traffic never leaves the loopback interface | TLS, with the backends holding a certificate |
+| No authentication on either service | Anything that can reach the port is already on your machine | Per-client credentials, checked by an interceptor |
+| Android `usesCleartextTraffic="true"` | Needed to reach the backends over plain HTTP/2 | Drop it, or scope it to the dev host with a network security config |
+| Backends bind `0.0.0.0` | Convenient for reaching them from a phone | Bind loopback, or firewall the ports |
+
+The last two combine into the one thing to actually watch: with the services on `0.0.0.0` and no
+authentication, **anyone on the same network can send audio to your STT service and prompts to your
+LLM**. On a home network that is a curiosity; on a café's Wi-Fi it is an open microphone-transcription
+and text-generation service running on your laptop. Bind to `127.0.0.1` unless you are deliberately
+testing from a phone.
+
+What the app does *not* do is worth stating too: **no audio, transcript or reply ever leaves the
+machine**. Speech recognition, the language model and speech synthesis are all self-hosted, there is
+no telemetry, and the repository contains no credentials — the only key-shaped string is the literal
+`"ollama"` that Ollama's OpenAI-compatible endpoint ignores.
+
+Microphone access is requested properly on every platform: `RECORD_AUDIO` at runtime on Android,
+`NSMicrophoneUsageDescription` on iOS, and the same declaration in the packaged macOS bundle —
+without which macOS terminates the app the moment it opens the microphone. iOS needs no App
+Transport Security exception, because gRPC does not go through `NSURLSession`.
+
 ## Repository layout
 
 ```
