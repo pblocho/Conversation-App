@@ -4,7 +4,7 @@ import com.pibi.conversation.grpc.AudioData
 import com.pibi.conversation.grpc.TextPiece
 import com.pibi.conversation.grpc.TtsService
 import com.pibi.conversation.grpc.invoke
-import com.pibi.conversation.networking.ttsClient.TtsClient
+import com.pibi.conversation.networking.tts.TtsClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf

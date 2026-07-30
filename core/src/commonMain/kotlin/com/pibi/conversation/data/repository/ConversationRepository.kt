@@ -1,8 +1,8 @@
 package com.pibi.conversation.data.repository
 
 import com.pibi.conversation.data.model.SynthesizedSpeech
-import com.pibi.conversation.networking.sttClient.SttClient
-import com.pibi.conversation.networking.ttsClient.TtsClient
+import com.pibi.conversation.networking.stt.SttClient
+import com.pibi.conversation.networking.tts.TtsClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 

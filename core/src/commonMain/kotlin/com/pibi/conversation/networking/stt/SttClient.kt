@@ -1,4 +1,4 @@
-package com.pibi.conversation.networking.sttClient
+package com.pibi.conversation.networking.stt
 
 import com.pibi.conversation.AppConfig
 import com.pibi.conversation.grpc.AudioChunk

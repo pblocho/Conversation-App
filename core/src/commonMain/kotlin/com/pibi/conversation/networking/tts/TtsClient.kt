@@ -1,4 +1,4 @@
-package com.pibi.conversation.networking.ttsClient
+package com.pibi.conversation.networking.tts
 
 import com.pibi.conversation.AppConfig
 import com.pibi.conversation.data.model.SynthesizedSpeech
