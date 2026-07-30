@@ -11,14 +11,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.rpc.grpc.client.GrpcClient
 import kotlinx.rpc.withService
 
-class TtsClient
+/**
+ * Text-to-speech over gRPC. The endpoint is a constructor parameter rather than a global, so the
+ * app can point at a different host per platform and tests can point at an in-process server.
+ */
+class TtsClient(
+    host: String = AppConfig.SERVER_HOST,
+    port: Int = AppConfig.TTS_PORT
+)
 {
-    companion object
-    {
-        private val client = GrpcClient(AppConfig.SERVER_HOST, AppConfig.TTS_PORT) {
-            credentials = plaintext()
-        }
+    private val client = GrpcClient(host, port) {
+        credentials = plaintext()
     }
+
+    /** Releases the underlying gRPC channel. */
+    fun shutdown() = client.shutdown()
 
     /**
      * Streams text pieces to the TTS backend and emits each synthesized result — audio together

@@ -12,15 +12,23 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.rpc.grpc.client.GrpcClient
 import kotlinx.rpc.withService
 
-class SttClient {
-    companion object {
-        private val client = GrpcClient(AppConfig.SERVER_HOST, AppConfig.STT_PORT) {
-            credentials = plaintext()
-        }
+/**
+ * Speech-to-text over gRPC. The endpoint is a constructor parameter rather than a global, so the
+ * app can point at a different host per platform and tests can point at an in-process server.
+ */
+class SttClient(
+    host: String = AppConfig.SERVER_HOST,
+    port: Int = AppConfig.STT_PORT
+) {
+    private val client = GrpcClient(host, port) {
+        credentials = plaintext()
     }
 
     private val _textOutputFlow = MutableSharedFlow<String>()
     val textOutputFlow = _textOutputFlow.asSharedFlow()
+
+    /** Releases the underlying gRPC channel. */
+    fun shutdown() = client.shutdown()
 
     /**
      * Streams microphone audio to the STT backend and emits transcripts on [textOutputFlow].
