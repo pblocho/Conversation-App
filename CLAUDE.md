@@ -36,6 +36,8 @@ Dependency chain: `core` → `app:shared` → `app:androidApp` / `app:desktopApp
 - `app:shared` — Compose UI + `ConversationViewModel`, shared across all app targets.
 - `server` — unrelated Ktor hello-world stub; do not confuse it with the real STT/TTS backends.
 
+Logging goes through Kermit, via the tagged loggers in `core/.../Log.kt` (`Log.recorder`, `Log.player`, `Log.conversation`) — **no `println`**, which never reached Logcat on Android and carried no level. Failures log with the throwable (`Log.player.e(e) { … }`) so the stack trace survives.
+
 ## Data flow (the big picture)
 
 `ConversationViewModel` (app:shared) constructs `ConversationManager(GrpcConversationRepository())` and calls `startConversation()` once, in its own scope. Everything downstream lives in `core`:

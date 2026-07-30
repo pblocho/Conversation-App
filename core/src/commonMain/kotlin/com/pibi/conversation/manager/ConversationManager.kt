@@ -1,5 +1,6 @@
 package com.pibi.conversation.manager
 
+import com.pibi.conversation.Log
 import com.pibi.conversation.audioplayer.AudioPlayer
 import com.pibi.conversation.audiorecorder.AudioRecorder
 import com.pibi.conversation.data.model.Message
@@ -304,7 +305,7 @@ class ConversationManager(
         {
             // One broken turn must not end the conversation; pause so a lasting failure
             // (no microphone, for instance) cannot spin the loop.
-            println("Conversation turn failed: ${failure.message}")
+            Log.conversation.e(failure) { "Turn failed; retrying after $RETRY_AFTER_FAILURE" }
             _uiState.update { it.copy(turnError = failure.message ?: failure::class.simpleName) }
             delay(RETRY_AFTER_FAILURE)
         }

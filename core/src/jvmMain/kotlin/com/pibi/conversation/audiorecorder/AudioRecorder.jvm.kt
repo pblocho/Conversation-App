@@ -1,5 +1,6 @@
 package com.pibi.conversation.audiorecorder
 
+import com.pibi.conversation.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,7 @@ internal actual fun capturePcm(): Flow<ByteArray> = callbackFlow {
     line.open(format)
     line.start()
 
-    println("🎙️ Microphone started (JVM)...")
+    Log.recorder.i { "Microphone started (JVM)" }
 
     val job = launch(Dispatchers.IO) {
         val buffer = ByteArray(4096)
@@ -52,6 +53,6 @@ internal actual fun capturePcm(): Flow<ByteArray> = callbackFlow {
         // line leaks and every later recording blocks forever.
         line.stop()
         line.close()
-        println("🛑 Microphone released (JVM).")
+        Log.recorder.i { "Microphone released (JVM)" }
     }
 }.flowOn(Dispatchers.IO)

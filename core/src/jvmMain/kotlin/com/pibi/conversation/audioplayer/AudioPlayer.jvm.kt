@@ -1,5 +1,6 @@
 package com.pibi.conversation.audioplayer
 
+import com.pibi.conversation.Log
 import java.io.ByteArrayInputStream
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.AudioInputStream
@@ -36,8 +37,7 @@ actual object AudioPlayer
 
         } catch (e: Exception)
         {
-            println("Error playing audio on JVM: ${e.message}")
-            e.printStackTrace()
+            Log.player.e(e) { "Could not play the answer audio (JVM)" }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.pibi.conversation.audioplayer
 
+import com.pibi.conversation.Log
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -34,7 +35,7 @@ actual object AudioPlayer
             }
         } catch (e: Exception)
         {
-            println("Error playing audio on iOS: ${e.message}")
+            Log.player.e(e) { "Could not play the answer audio (iOS)" }
         }
     }
 }

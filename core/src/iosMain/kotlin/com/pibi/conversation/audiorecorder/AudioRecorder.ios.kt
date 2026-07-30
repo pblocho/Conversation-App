@@ -1,5 +1,6 @@
 package com.pibi.conversation.audiorecorder
 
+import com.pibi.conversation.Log
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.get
 import kotlinx.coroutines.channels.awaitClose
@@ -80,7 +81,7 @@ internal actual fun capturePcm(): Flow<ByteArray> = callbackFlow {
         engine.prepare()
         if (engine.startAndReturnError(null))
         {
-            println("🎙️ Microphone started (iOS, ${sourceRate.toInt()} Hz -> 16000 Hz)...")
+            Log.recorder.i { "Microphone started (iOS, ${sourceRate.toInt()} Hz -> 16000 Hz)" }
         } else
         {
             close(IllegalStateException("Failed to start AVAudioEngine"))
@@ -90,6 +91,6 @@ internal actual fun capturePcm(): Flow<ByteArray> = callbackFlow {
     awaitClose {
         input.removeTapOnBus(0u)
         engine.stop()
-        println("🛑 Microphone released (iOS).")
+        Log.recorder.i { "Microphone released (iOS)" }
     }
 }

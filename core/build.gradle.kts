@@ -41,6 +41,8 @@ kotlin {
             api(libs.kotlinx.rpc.protobuf)
             // Only for Compose stability annotations (@Immutable) on UI state models
             api(libs.compose.runtime)
+            // Routes logs to Logcat, os_log and stdout without core knowing which platform it is on
+            implementation(libs.kermit)
         }
         androidMain.dependencies {
             implementation(libs.grpc.okhttp)

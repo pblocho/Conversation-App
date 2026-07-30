@@ -13,6 +13,7 @@ androidx-testRunner = "1.6.2"
 androidx-testRules = "1.6.1"
 composeMultiplatform = "1.11.1"
 junit = "4.13.2"
+kermit = "2.1.0"
 kotlin = "2.4.0"
 kotlinx-coroutines = "1.11.0"
 kotlinxRpc = "0.11.0-grpc-189"
@@ -41,6 +42,7 @@ compose-material3 = { module = "org.jetbrains.compose.material3:material3", vers
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-rpc-grpc-core = { module = "org.jetbrains.kotlinx:kotlinx-rpc-grpc-core", version.ref = "kotlinxRpc" }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import com.pibi.conversation.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +42,7 @@ internal actual fun capturePcm(): Flow<ByteArray> = callbackFlow {
     }
 
     record.startRecording()
-    println("🎙️ Microphone started (Android, $SAMPLE_RATE Hz)...")
+    Log.recorder.i { "Microphone started (Android, $SAMPLE_RATE Hz)" }
 
     val job = launch(Dispatchers.IO) {
         val buffer = ByteArray(4096)
@@ -64,7 +65,7 @@ internal actual fun capturePcm(): Flow<ByteArray> = callbackFlow {
         {
             record.stop()
             record.release()
-            println("🛑 Microphone released (Android).")
+            Log.recorder.i { "Microphone released (Android)" }
         }
     }
 

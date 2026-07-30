@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import com.pibi.conversation.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -38,7 +39,7 @@ actual object AudioPlayer
             }
             if (dataOffset < 0 || dataSize <= 0)
             {
-                println("Error playing audio on Android: no data chunk in WAV")
+                Log.player.e { "Could not play the answer audio (Android): no data chunk in the WAV" }
                 return
             }
 
@@ -85,7 +86,7 @@ actual object AudioPlayer
             track.release()
         } catch (e: Exception)
         {
-            println("Error playing audio on Android: ${e.message}")
+            Log.player.e(e) { "Could not play the answer audio (Android)" }
         }
     }
 }
