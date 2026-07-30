@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -15,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pibi.conversation.data.model.Message
 import com.pibi.conversation.data.model.MessageType
+import com.pibi.conversation.manager.ConnectionState
 
 @Composable
 @Preview
@@ -39,6 +42,11 @@ fun App(
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.padding(8.dp)
             )
+
+            if (!uiState.connection.isReady)
+            {
+                ConnectionBanner(uiState.connection)
+            }
 
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -65,6 +73,35 @@ fun App(
                 Button(onClick = viewModel::onStopClicked) {
                     Text("Stop")
                 }
+            }
+        }
+    }
+}
+
+/** Tells the user which backend is missing while the manager reconnects to it. */
+@Composable
+private fun ConnectionBanner(connection: ConnectionState)
+{
+    val missing = buildList {
+        if (!connection.sttUp) add("speech recognition")
+        if (!connection.ttsUp) add("the assistant")
+    }.joinToString(" and ")
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = "Reconnecting to $missing…",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            connection.lastError?.let { error ->
+                Text(
+                    text = error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
         }
     }

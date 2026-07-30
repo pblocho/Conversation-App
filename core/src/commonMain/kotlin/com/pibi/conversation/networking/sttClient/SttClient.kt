@@ -22,30 +22,32 @@ class SttClient {
     private val _textOutputFlow = MutableSharedFlow<String>()
     val textOutputFlow = _textOutputFlow.asSharedFlow()
 
+    /**
+     * Streams microphone audio to the STT backend and emits transcripts on [textOutputFlow].
+     * Returns when the server closes the stream and **throws when the stream fails** — the
+     * caller owns reconnection policy, because only it knows what a lost stream means for
+     * the conversation.
+     */
     suspend fun streamAudioToStt(audioSource: Flow<ByteArray>) {
-        try {
-            val service = client.withService<SttService>()
+        val service = client.withService<SttService>()
 
-            val requests = flow {
-                // An empty chunk from the recorder marks the end of an utterance.
-                // Emit the marker once and suppress repeats until audio resumes.
-                var utteranceOpen = true
-                audioSource.collect { audioChunk ->
-                    if (audioChunk.isNotEmpty()) {
-                        utteranceOpen = true
-                        emit(AudioChunk { data = ByteString(*audioChunk) })
-                    } else if (utteranceOpen) {
-                        utteranceOpen = false
-                        emit(AudioChunk { endOfUtterance = true })
-                    }
+        val requests = flow {
+            // An empty chunk from the recorder marks the end of an utterance.
+            // Emit the marker once and suppress repeats until audio resumes.
+            var utteranceOpen = true
+            audioSource.collect { audioChunk ->
+                if (audioChunk.isNotEmpty()) {
+                    utteranceOpen = true
+                    emit(AudioChunk { data = ByteString(*audioChunk) })
+                } else if (utteranceOpen) {
+                    utteranceOpen = false
+                    emit(AudioChunk { endOfUtterance = true })
                 }
             }
+        }
 
-            service.Transcribe(requests).collect { transcript ->
-                _textOutputFlow.emit(transcript.text)
-            }
-        } catch (e: Exception) {
-            println("STT Connection Error: ${e.message}")
+        service.Transcribe(requests).collect { transcript ->
+            _textOutputFlow.emit(transcript.text)
         }
     }
 }

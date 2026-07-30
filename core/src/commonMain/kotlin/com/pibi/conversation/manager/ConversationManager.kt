@@ -16,10 +16,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
@@ -84,6 +84,13 @@ class ConversationManager(
 
         /** Pause before the next turn after one blew up, so a lasting failure cannot spin the loop. */
         val RETRY_AFTER_FAILURE = 2.seconds
+
+        /** A backend stream that survives this long without failing counts as healthy. */
+        val CONNECTION_GRACE = 1.seconds
+
+        /** Reconnect delay after a stream drops, doubling up to [RECONNECT_MAX_DELAY]. */
+        val RECONNECT_MIN_DELAY = 1.seconds
+        val RECONNECT_MAX_DELAY = 30.seconds
     }
 
     private val _uiState = MutableStateFlow(ConversationUiState())
@@ -95,8 +102,12 @@ class ConversationManager(
     /** Transcripts coming back from STT, buffered so none is lost between states. */
     private val transcripts = Channel<String>(Channel.UNLIMITED)
 
-    /** Questions handed to the LLM/TTS stream. */
-    private val llmRequests = MutableSharedFlow<String>()
+    /**
+     * Questions handed to the LLM/TTS stream. A channel rather than a SharedFlow: a SharedFlow
+     * with no subscriber drops what it is given, so a question asked while the stream was
+     * reconnecting would vanish without a trace. A channel holds it until the stream is back.
+     */
+    private val llmRequests = Channel<String>(Channel.BUFFERED)
 
     /** Answer sentences (text plus audio) coming back from the LLM/TTS stream. */
     private val answers = Channel<SynthesizedSpeech>(Channel.UNLIMITED)
@@ -137,9 +148,89 @@ class ConversationManager(
     {
         transitionTo(ConversationState.Init)
 
+        // Transcripts arrive on a hot flow the STT client owns, so this outlives any one stream.
         scope.launch(ioDispatcher) { repository.transcripts.collect { transcripts.send(it) } }
-        scope.launch(ioDispatcher) { repository.synthesizeSpeech(llmRequests).collect { answers.send(it) } }
-        scope.launch(ioDispatcher) { repository.transcribe(sttRequests.receiveAsFlow()) }
+
+        scope.launch(ioDispatcher) {
+            keepConnected({ up, error -> markConnection(error) { it.copy(sttUp = up) } }) {
+                // Audio left over from a dropped stream is half an utterance; a fresh stream
+                // would transcribe it as gibberish.
+                while (sttRequests.tryReceive().isSuccess)
+                {
+                }
+                repository.transcribe(sttRequests.receiveAsFlow())
+            }
+        }
+
+        scope.launch(ioDispatcher) {
+            keepConnected({ up, error -> markConnection(error) { it.copy(ttsUp = up) } }) {
+                repository.synthesizeSpeech(llmRequests.receiveAsFlow()).collect { answers.send(it) }
+            }
+        }
+    }
+
+    /**
+     * Keeps one backend stream alive for the whole session. [connect] returns when the backend
+     * closes the stream and throws when it fails; either way a new stream is opened, backing off
+     * so a backend that stays down cannot spin the loop.
+     *
+     * A stream is only reported up once it has survived [CONNECTION_GRACE] — reporting it up the
+     * moment it is opened would flicker "connected" on every retry against a dead backend.
+     */
+    private suspend fun keepConnected(
+        setUp: (Boolean, String?) -> Unit,
+        connect: suspend () -> Unit
+    ) = coroutineScope {
+        var backoff = RECONNECT_MIN_DELAY
+
+        while (isActive)
+        {
+            var settled = false
+            val settle = launch {
+                delay(CONNECTION_GRACE)
+                settled = true
+                setUp(true, null)
+            }
+
+            var failure: String? = null
+            try
+            {
+                connect()
+            } catch (cancellation: CancellationException)
+            {
+                throw cancellation
+            } catch (dropped: Exception)
+            {
+                failure = dropped.message ?: dropped::class.simpleName
+            } finally
+            {
+                settle.cancel()
+            }
+
+            setUp(false, failure)
+            // A stream that had been healthy starts a fresh outage rather than continuing the
+            // previous one's backoff.
+            backoff = if (settled) RECONNECT_MIN_DELAY else (backoff * 2).coerceAtMost(RECONNECT_MAX_DELAY)
+            delay(backoff)
+        }
+    }
+
+    private fun markConnection(error: String?, change: (ConnectionState) -> ConnectionState)
+    {
+        _uiState.update { state ->
+            val connection = change(state.connection).let {
+                it.copy(lastError = error ?: it.lastError)
+            }
+            // Once everything is back up the old failure is history.
+            state.copy(connection = if (connection.isReady) connection.copy(lastError = null) else connection)
+        }
+    }
+
+    /** Holds the turn until both backends are healthy, instead of talking into a dead stream. */
+    private suspend fun awaitBackendsReady()
+    {
+        if (uiState.value.connection.isReady) return
+        uiState.first { it.connection.isReady }
     }
 
     /**
@@ -166,6 +257,7 @@ class ConversationManager(
                     ConversationState.Idle ->
                     {
                         discardStaleEvents()
+                        awaitBackendsReady()
                         ConversationState.RecordingAudio
                     }
 
@@ -190,7 +282,7 @@ class ConversationManager(
 
                     ConversationState.SendTextToLlm ->
                     {
-                        llmRequests.emit(question)
+                        llmRequests.send(question)
                         ConversationState.WaitForAudioAndTextFromLlm
                     }
 

@@ -37,7 +37,7 @@ private class FakeRepository : ConversationRepository
         }
     }
 
-    override fun synthesizeSpeech(textFlow: SharedFlow<String>): Flow<SynthesizedSpeech> = flow {
+    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<SynthesizedSpeech> = flow {
         textFlow.collect { question ->
             questionsAsked += question
             emit(SynthesizedSpeech("It is sunny.", byteArrayOf(1, 2, 3)))

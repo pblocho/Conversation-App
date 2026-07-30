@@ -5,6 +5,7 @@ import com.pibi.conversation.data.model.Message
 data class ConversationUiState(
     val messages: List<Message> = emptyList(),
     val state: ConversationState = ConversationState.Init,
+    val connection: ConnectionState = ConnectionState(),
     val currentVolume: Double = 0.0,
     val statusText: String = "Ready"
 )
