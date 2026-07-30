@@ -3,6 +3,7 @@ package com.pibi.conversation.audioplayer
 import com.pibi.conversation.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -11,7 +12,6 @@ import kotlinx.cinterop.usePinned
 import platform.AVFAudio.AVAudioPlayer
 import platform.Foundation.NSData
 import platform.Foundation.create
-import platform.posix.usleep
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual object AudioPlayer
@@ -33,7 +33,7 @@ actual object AudioPlayer
             // TtsClient plays chunks sequentially on Dispatchers.IO.
             while (player.playing)
             {
-                usleep(10_000u)
+                delay(10)
             }
         } catch (e: Exception)
         {

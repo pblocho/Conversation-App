@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.media.AudioTrack
 import com.pibi.conversation.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -18,29 +19,45 @@ actual object AudioPlayer
             if (wavBytes.size <= 44) return@withContext
 
             val header = ByteBuffer.wrap(wavBytes).order(ByteOrder.LITTLE_ENDIAN)
-            val channels = header.getShort(22).toInt()
-            val sampleRate = header.getInt(24)
-            val bitsPerSample = header.getShort(34).toInt()
 
-            // Locate the "data" chunk — WAV files may carry extra chunks before it.
+            // Walk the chunks for both "fmt " and "data" rather than reading either at a fixed
+            // offset: a WAV may carry LIST or other chunks first, or an extended fmt chunk, and
+            // every field after it would then be read from the wrong place.
             var offset = 12
+            var channels = 0
+            var sampleRate = 0
+            var bitsPerSample = 0
             var dataOffset = -1
             var dataSize = 0
             while (offset + 8 <= wavBytes.size)
             {
                 val chunkId = String(wavBytes, offset, 4, Charsets.US_ASCII)
                 val chunkSize = header.getInt(offset + 4)
-                if (chunkId == "data")
+                val body = offset + 8
+
+                when (chunkId)
                 {
-                    dataOffset = offset + 8
-                    dataSize = minOf(chunkSize, wavBytes.size - dataOffset)
-                    break
+                    // fmt: audioFormat, channels, sampleRate, byteRate, blockAlign, bitsPerSample
+                    "fmt " -> if (body + 16 <= wavBytes.size)
+                    {
+                        channels = header.getShort(body + 2).toInt()
+                        sampleRate = header.getInt(body + 4)
+                        bitsPerSample = header.getShort(body + 14).toInt()
+                    }
+
+                    "data" ->
+                    {
+                        dataOffset = body
+                        dataSize = minOf(chunkSize, wavBytes.size - body)
+                    }
                 }
-                offset += 8 + chunkSize + (chunkSize and 1)
+
+                if (dataOffset >= 0) break
+                offset = body + chunkSize + (chunkSize and 1)
             }
-            if (dataOffset < 0 || dataSize <= 0)
+            if (dataOffset < 0 || dataSize <= 0 || sampleRate <= 0)
             {
-                Log.player.e { "Could not play the answer audio (Android): no data chunk in the WAV" }
+                Log.player.e { "Could not play the answer audio (Android): no usable fmt/data chunk" }
                 return@withContext
             }
 
@@ -80,7 +97,7 @@ actual object AudioPlayer
             val totalFrames = if (bytesPerFrame > 0) dataSize / bytesPerFrame else 0
             while (track.playState == AudioTrack.PLAYSTATE_PLAYING && track.playbackHeadPosition < totalFrames)
             {
-                Thread.sleep(10)
+                delay(10)
             }
 
             track.stop()

@@ -134,6 +134,9 @@ class ConversationManager(
     @Volatile
     private var currentTurn: Job? = null
 
+    /** False while the app is in the background: no recording, no questions. */
+    private val awake = MutableStateFlow(true)
+
     /**
      * Opens the session and runs turns until cancelled. Suspends for as long as the conversation
      * lives, so callers launch it once (the ViewModel does this in its own scope).
@@ -156,6 +159,26 @@ class ConversationManager(
     fun stop()
     {
         currentTurn?.cancel()
+    }
+
+    /**
+     * Stops listening while the app is out of sight: the turn in flight is cancelled, which hands
+     * the microphone back, and the machine then waits at [ConversationState.Idle].
+     *
+     * The backend streams stay open on purpose. They cost nothing while idle, and the backend
+     * keeps the LLM's chat history per stream — dropping them would make the assistant forget the
+     * conversation every time the app was backgrounded.
+     */
+    fun pause()
+    {
+        awake.value = false
+        currentTurn?.cancel()
+    }
+
+    /** Starts listening again after [pause]. */
+    fun resume()
+    {
+        awake.value = true
     }
 
     /**
@@ -277,6 +300,7 @@ class ConversationManager(
                         discardStaleEvents()
                         // Whatever went wrong last turn is history once a new one gets going.
                         _uiState.update { it.copy(turnError = null) }
+                        awake.first { it }
                         awaitBackendsReady()
                         ConversationState.RecordingAudio
                     }

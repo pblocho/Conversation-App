@@ -11,8 +11,11 @@ import kotlin.math.sqrt
  * Capturing audio differs per platform; deciding what counts as speech does not, so this lives
  * here instead of being repeated in each `capturePcm` actual.
  */
+/** One shared instance: every silent chunk means the same nothing. */
+private val SILENCE = ByteArray(0)
+
 internal fun Flow<ByteArray>.speechGate(threshold: Int): Flow<ByteArray> = map { chunk ->
-    if (rms(chunk) > threshold) chunk else ByteArray(0)
+    if (rms(chunk) > threshold) chunk else SILENCE
 }
 
 /**

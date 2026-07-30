@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,12 @@ fun App(
 {
     // Lifecycle-aware: collection stops while the app is in the background.
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Hold the microphone only while the app is actually on screen.
+    LifecycleStartEffect(viewModel) {
+        viewModel.onAppForegrounded()
+        onStopOrDispose { viewModel.onAppBackgrounded() }
+    }
     // The backend answers one message per sentence; merge them so a whole turn is one card.
     val turns = remember(uiState.messages) { uiState.messages.mergeConsecutive() }
 

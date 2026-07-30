@@ -12,11 +12,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.minutes
 
 /** Backend stand-in: answers every finished utterance with a transcript, and every question with speech. */
 private class FakeRepository : ConversationRepository
@@ -157,6 +159,28 @@ class ConversationStateMachineTest
             seen.count { it == ConversationState.Init },
             "Init is opening the session, not a step of a turn; saw: $seen"
         )
+    }
+
+    @Test
+    fun pauseStopsListeningUntilTheAppComesBack() = runTest {
+        val manager = manager(microphone = ::endlessMicrophone)
+        val states = statesOf(manager)
+        backgroundScope.launch { manager.startConversation() }
+
+        states.receiveUntil(ConversationState.RecordingAudio)
+        manager.pause()
+
+        // The turn is dropped and the machine waits at Idle rather than holding the microphone.
+        assertEquals(ConversationState.Idle, states.receive())
+        advanceTimeBy(2.minutes)
+        assertEquals(
+            null,
+            states.tryReceive().getOrNull(),
+            "a backgrounded app should not start recording again"
+        )
+
+        manager.resume()
+        assertEquals(ConversationState.RecordingAudio, states.receive())
     }
 
     @Test

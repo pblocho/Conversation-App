@@ -23,4 +23,10 @@ class ConversationViewModel : ViewModel() {
 
     /** Cancels the turn in flight; the machine goes back to listening on its own. */
     fun onStopClicked() = manager.stop()
+
+    /** The app is on screen again: start listening. */
+    fun onAppForegrounded() = manager.resume()
+
+    /** The app went out of sight: stop holding the microphone open. */
+    fun onAppBackgrounded() = manager.pause()
 }
