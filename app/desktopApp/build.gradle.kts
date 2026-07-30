@@ -21,8 +21,21 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.pibi.conversation"
+            // Matches the Android and iOS apps, and reads better than a package id in Finder.
+            packageName = "Conversation"
             packageVersion = "1.0.0"
+
+            macOS {
+                bundleID = "com.pibi.conversation"
+                infoPlist {
+                    // Without this, macOS terminates the bundle the moment it opens the
+                    // microphone — which the conversation loop does as soon as it starts.
+                    extraKeysRawXml = """
+                        <key>NSMicrophoneUsageDescription</key>
+                        <string>The app records your voice to transcribe it and hold a spoken conversation.</string>
+                    """.trimIndent()
+                }
+            }
         }
     }
 }
