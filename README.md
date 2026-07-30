@@ -114,8 +114,24 @@ Two things the contract does not show, but the app depends on:
 # iOS: open app/iosApp in Xcode and run from there
 ```
 
-Desktop works as-is. On a **device or emulator**, `127.0.0.1` is the phone itself — point
-`AppConfig.SERVER_HOST` at `10.0.2.2` (Android emulator) or your machine's LAN address first.
+Desktop and the **Android emulator** work as-is: the emulator reaches the host through the alias
+`10.0.2.2`, which the app selects automatically (`defaultServerHost()`).
+
+On a **physical phone**, `127.0.0.1` is the phone itself. Either forward the ports over USB:
+
+```bash
+adb reverse tcp:8000 tcp:8000 && adb reverse tcp:8001 tcp:8001
+```
+
+…or, to reach the machine over Wi-Fi instead, hand the clients its LAN address — they take a host
+parameter, so no constant needs editing:
+
+```kotlin
+GrpcConversationRepository(SttClient(host = "192.168.1.x"), TtsClient(host = "192.168.1.x"))
+```
+
+The same applies to a physical iPhone, which has no `adb reverse` equivalent — use the LAN address.
+The backends must then listen on `0.0.0.0` rather than loopback.
 
 ## Testing
 
