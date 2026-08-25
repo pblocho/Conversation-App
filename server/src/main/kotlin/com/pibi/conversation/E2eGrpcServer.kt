@@ -67,15 +67,23 @@ private fun toneWav(sampleRate: Int = 16000, durationMs: Int = 300, frequency: D
     return out.toByteArray()
 }
 
-fun main(): Unit = runBlocking {
-    val sttServer = GrpcServer(AppConfig.STT_PORT) {
+/**
+ * Ports default to the real ones, so `adb reverse tcp:8001 tcp:8001` needs no arguments.
+ * Pass `--args="<sttPort> <ttsPort>"` to run beside a real backend that already holds those
+ * ports, and point the device at them with `adb reverse tcp:8001 tcp:<sttPort>`.
+ */
+fun main(args: Array<String>): Unit = runBlocking {
+    val sttPort = args.getOrNull(0)?.toInt() ?: AppConfig.STT_PORT
+    val ttsPort = args.getOrNull(1)?.toInt() ?: AppConfig.TTS_PORT
+
+    val sttServer = GrpcServer(sttPort) {
         services { registerService<SttService> { EchoSttService() } }
     }.start()
-    val ttsServer = GrpcServer(AppConfig.TTS_PORT) {
+    val ttsServer = GrpcServer(ttsPort) {
         services { registerService<TtsService> { ToneTtsService() } }
     }.start()
 
-    println("E2E gRPC test server ready: STT :${AppConfig.STT_PORT}, TTS :${AppConfig.TTS_PORT}")
+    println("E2E gRPC test server ready: STT :$sttPort, TTS :$ttsPort")
     sttServer.awaitTermination()
     ttsServer.awaitTermination()
 }

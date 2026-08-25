@@ -1,4 +1,4 @@
-package com.pibi.conversation
+package com.pibi.conversation.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -1,4 +1,4 @@
-package com.pibi.conversation
+package com.pibi.conversation.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
@@ -10,16 +10,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pibi.conversation.data.model.Message
 
-/** What was heard from the speaker. Size and spacing are the caller's to decide, hence [modifier]. */
+/** What the assistant said. Size and spacing are the caller's to decide, hence [modifier]. */
 @Composable
-fun Question(
+fun Answer(
     message: Message,
     modifier: Modifier = Modifier
 )
 {
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-        modifier = modifier
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        modifier = modifier.padding(end= 50.dp)
     ) {
         Text(message.text, modifier = Modifier.padding(16.dp))
     }

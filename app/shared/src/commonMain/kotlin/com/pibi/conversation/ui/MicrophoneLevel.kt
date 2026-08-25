@@ -1,4 +1,4 @@
-package com.pibi.conversation
+package com.pibi.conversation.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
