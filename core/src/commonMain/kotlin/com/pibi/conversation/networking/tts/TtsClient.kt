@@ -2,6 +2,7 @@ package com.pibi.conversation.networking.tts
 
 import com.pibi.conversation.AppConfig
 import com.pibi.conversation.data.model.AnswerEvent
+import com.pibi.conversation.data.model.SpeechRequest
 import com.pibi.conversation.grpc.TextPiece
 import com.pibi.conversation.grpc.TtsService
 import com.pibi.conversation.grpc.invoke
@@ -39,11 +40,15 @@ class TtsClient(
      * ending the flow quietly: only the caller knows whether a lost stream should be retried, and
      * a silent completion here would strand every later question with no way to notice.
      */
-    fun streamSpeech(textInputFlow: Flow<String>): Flow<AnswerEvent> = flow {
+    fun streamSpeech(speechRequests: Flow<SpeechRequest>): Flow<AnswerEvent> = flow {
         val service = client.withService<TtsService>()
 
-        val requests = textInputFlow.map { pieceOfText ->
-            TextPiece { text = pieceOfText }
+        val requests = speechRequests.map { request ->
+            when (request)
+            {
+                is SpeechRequest.Say -> TextPiece { text = request.text }
+                SpeechRequest.Cancel -> TextPiece { cancel = true }
+            }
         }
 
         service.Synthesize(requests).collect { audio ->

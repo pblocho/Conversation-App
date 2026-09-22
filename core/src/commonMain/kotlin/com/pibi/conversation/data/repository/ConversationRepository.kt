@@ -1,6 +1,7 @@
 package com.pibi.conversation.data.repository
 
 import com.pibi.conversation.data.model.AnswerEvent
+import com.pibi.conversation.data.model.SpeechRequest
 import com.pibi.conversation.networking.stt.SttClient
 import com.pibi.conversation.networking.tts.TtsClient
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +31,7 @@ interface ConversationRepository
      * chat history per stream. That is why the end of an answer is an event on the stream rather
      * than the end of it. Failures reach the collector rather than ending the flow quietly.
      */
-    fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent>
+    fun synthesizeSpeech(speechRequests: Flow<SpeechRequest>): Flow<AnswerEvent>
 }
 
 /** Talks to the STT and TTS backends over gRPC ([SttClient], [TtsClient]). */
@@ -42,6 +43,6 @@ class GrpcConversationRepository(
     override fun transcribe(audioSource: Flow<ByteArray>): Flow<String> =
         sttClient.streamAudioToStt(audioSource)
 
-    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent> =
-        ttsClient.streamSpeech(textFlow)
+    override fun synthesizeSpeech(speechRequests: Flow<SpeechRequest>): Flow<AnswerEvent> =
+        ttsClient.streamSpeech(speechRequests)
 }

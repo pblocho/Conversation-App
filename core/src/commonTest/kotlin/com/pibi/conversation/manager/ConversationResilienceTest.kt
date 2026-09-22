@@ -2,10 +2,12 @@ package com.pibi.conversation.manager
 
 import com.pibi.conversation.data.model.MessageType
 import com.pibi.conversation.data.model.AnswerEvent
+import com.pibi.conversation.data.model.SpeechRequest
 import com.pibi.conversation.data.repository.ConversationRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -42,11 +44,11 @@ private class FlakyRepository(
         }
     }
 
-    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent> = flow {
+    override fun synthesizeSpeech(speechRequests: Flow<SpeechRequest>): Flow<AnswerEvent> = flow {
         if (ttsAttempts++ < ttsFailures) throw IllegalStateException("tts stream lost")
 
-        textFlow.collect { question ->
-            questionsAsked += question
+        speechRequests.filterIsInstance<SpeechRequest.Say>().collect { say ->
+            questionsAsked += say.text
             emit(AnswerEvent.Sentence("Still here.", byteArrayOf(7, 8, 9)))
             emit(AnswerEvent.Complete)
         }

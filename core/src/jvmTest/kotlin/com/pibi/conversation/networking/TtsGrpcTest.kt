@@ -1,6 +1,7 @@
 package com.pibi.conversation.networking
 
 import com.pibi.conversation.data.model.AnswerEvent
+import com.pibi.conversation.data.model.SpeechRequest
 import com.pibi.conversation.grpc.AudioData
 import com.pibi.conversation.grpc.TextPiece
 import com.pibi.conversation.grpc.TtsService
@@ -17,6 +18,7 @@ import kotlinx.io.bytestring.ByteString
 import kotlinx.rpc.grpc.server.GrpcServer
 import kotlinx.rpc.registerService
 import java.net.ServerSocket
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -43,6 +45,16 @@ private class MarkingTtsService : TtsService {
     }
 }
 
+/** Records what reached the wire, so the client's own protocol can be asserted. */
+private class RecordingTtsService(private val received: MutableList<String>) : TtsService {
+    override fun Synthesize(message: Flow<TextPiece>): Flow<AudioData> = flow {
+        message.collect { piece ->
+            received += if (piece.cancel) "cancel" else "say(${piece.text})"
+            if (!piece.cancel) emit(AudioData { text = piece.text; data = ByteString(1) })
+        }
+    }
+}
+
 /** A backend that drops the stream, which is what the manager's reconnect logic hangs on. */
 private class BrokenTtsService : TtsService {
     override fun Synthesize(message: Flow<TextPiece>): Flow<AudioData> = flow {
@@ -63,7 +75,7 @@ class TtsGrpcTest {
         val client = TtsClient(port = port)
         try {
             val spoken = withTimeout(15_000) {
-                client.streamSpeech(flowOf("Hello there", "How are you")).toList()
+                client.streamSpeech(flowOf(SpeechRequest.Say("Hello there"), SpeechRequest.Say("How are you"))).toList()
             }
 
             // Each result pairs the audio with the text it was synthesized from — the thing the
@@ -87,13 +99,39 @@ class TtsGrpcTest {
 
         val client = TtsClient(port = port)
         try {
-            val events = withTimeout(15_000) { client.streamSpeech(flowOf("Hello")).toList() }
+            val events = withTimeout(15_000) { client.streamSpeech(flowOf(SpeechRequest.Say("Hello"))).toList() }
 
             // The marker carries no audio and no text, so it must not arrive as a sentence the
             // app would show on screen and try to play.
             assertEquals(2, events.size)
             assertEquals("spoken: Hello", (events.first() as AnswerEvent.Sentence).text)
             assertEquals(AnswerEvent.Complete, events.last())
+        } finally {
+            client.shutdown()
+            server.shutdown()
+            server.awaitTermination()
+        }
+    }
+
+    @Test
+    fun cancellingReachesTheBackendOnTheSameStream() = runBlocking {
+        val port = freePort()
+        val received = CopyOnWriteArrayList<String>()
+        val server = GrpcServer(port) {
+            services { registerService<TtsService> { RecordingTtsService(received) } }
+        }.start()
+
+        val client = TtsClient(port = port)
+        try {
+            withTimeout(15_000) {
+                client.streamSpeech(
+                    flowOf(SpeechRequest.Say("Tell me a long story"), SpeechRequest.Cancel)
+                ).toList()
+            }
+
+            // Cancelling travels as a message up the same stream. Closing the stream would also
+            // stop the answer, but would take the conversation's memory with it.
+            assertEquals(listOf("say(Tell me a long story)", "cancel"), received.toList())
         } finally {
             client.shutdown()
             server.shutdown()
@@ -113,7 +151,7 @@ class TtsGrpcTest {
             // The client must not swallow this: a flow that just ends looks like a finished
             // answer, and the manager would never know to reconnect.
             assertFails {
-                withTimeout(15_000) { client.streamSpeech(flowOf("Hello")).toList() }
+                withTimeout(15_000) { client.streamSpeech(flowOf(SpeechRequest.Say("Hello"))).toList() }
             }
         } finally {
             client.shutdown()

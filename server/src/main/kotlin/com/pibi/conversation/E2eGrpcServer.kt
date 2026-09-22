@@ -40,6 +40,11 @@ private class EchoSttService : SttService {
 private class ToneTtsService : TtsService {
     override fun Synthesize(message: Flow<TextPiece>): Flow<AudioData> = flow {
         message.collect { piece ->
+            if (piece.cancel) {
+                println("E2E TTS: cancelled")
+                emit(AudioData { endOfAnswer = true })
+                return@collect
+            }
             println("E2E TTS: synthesizing \"${piece.text}\"")
             emit(AudioData {
                 data = ByteString(*toneWav())

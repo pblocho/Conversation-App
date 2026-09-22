@@ -9,6 +9,11 @@ service TtsService {
 
 message TextPiece {
   string text = 1;
+  // Stop the answer being spoken right now and leave the stream open for the next question.
+  //
+  // Sent with no text. Closing the stream would also stop it, but would take the conversation
+  // with it — the chat history lives per stream — so interruption has to be a message.
+  bool cancel = 2;
 }
 
 message AudioData {

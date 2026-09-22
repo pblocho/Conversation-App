@@ -2,15 +2,18 @@ package com.pibi.conversation.manager
 
 import com.pibi.conversation.data.model.MessageType
 import com.pibi.conversation.data.model.AnswerEvent
+import com.pibi.conversation.data.model.SpeechRequest
 import com.pibi.conversation.data.repository.ConversationRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.currentTime
@@ -21,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Backend stand-in: answers every finished utterance with a transcript, and every question with
@@ -38,13 +42,53 @@ private class FakeRepository(private val marksAnswerComplete: Boolean = true) : 
         }
     }
 
-    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent> = flow {
-        textFlow.collect { question ->
-            questionsAsked += question
+    override fun synthesizeSpeech(speechRequests: Flow<SpeechRequest>): Flow<AnswerEvent> = flow {
+        speechRequests.filterIsInstance<SpeechRequest.Say>().collect { say ->
+            questionsAsked += say.text
             emit(AnswerEvent.Sentence("It is sunny.", byteArrayOf(1, 2, 3)))
             // Like a backend that implements the marker: say the answer is over instead of
             // leaving the client to wait out the timeout.
             if (marksAnswerComplete) emit(AnswerEvent.Complete)
+        }
+    }
+}
+
+/**
+ * A backend interrupted mid-answer, closing the cancelled answer only once the next question
+ * arrives — which is what the real one does, since it finishes the sentence already in the
+ * synthesizer before it gets to the next request.
+ *
+ * The first answer is deliberately left hanging, so there is something to cancel.
+ */
+private class InterruptedRepository : ConversationRepository
+{
+    val questionsAsked = mutableListOf<String>()
+    private var cancelledAnswers = 0
+
+    override fun transcribe(audioSource: Flow<ByteArray>): Flow<String> = flow {
+        audioSource.collect { chunk ->
+            if (chunk.isEmpty()) emit("Question ${questionsAsked.size + 1}")
+        }
+    }
+
+    override fun synthesizeSpeech(speechRequests: Flow<SpeechRequest>): Flow<AnswerEvent> = flow {
+        speechRequests.collect { request ->
+            when (request)
+            {
+                SpeechRequest.Cancel -> cancelledAnswers++
+
+                is SpeechRequest.Say ->
+                {
+                    // The answer that was cancelled is closed now, ahead of this one's audio.
+                    repeat(cancelledAnswers) { emit(AnswerEvent.Complete) }
+                    cancelledAnswers = 0
+
+                    questionsAsked += request.text
+                    emit(AnswerEvent.Sentence("Answer to ${request.text}", byteArrayOf(1)))
+                    // The first answer never finishes on its own; it is the one being cancelled.
+                    if (questionsAsked.size > 1) emit(AnswerEvent.Complete)
+                }
+            }
         }
     }
 }
@@ -208,6 +252,27 @@ class ConversationStateMachineTest
             seen.count { it == ConversationState.Init },
             "Init is opening the session, not a step of a turn; saw: $seen"
         )
+    }
+
+    /**
+     * A cancelled answer is closed by a marker that arrives while the next turn is already
+     * waiting. That marker belongs to the answer nobody is listening to any more, and must not be
+     * taken for the end of the one being waited on — otherwise the next reply is never heard.
+     */
+    @Test
+    fun theNextAnswerSurvivesTheMarkerOfACancelledOne() = runTest {
+        val repository = InterruptedRepository()
+        val manager = manager(repository)
+        backgroundScope.launch { manager.startConversation() }
+
+        // First answer is under way, then the user stops it.
+        manager.uiState.first { state -> state.messages.any { it.text == "Answer to Question 1" } }
+        manager.stop()
+
+        // The second question must still be answered, in text and in audio.
+        withTimeout(30.seconds) {
+            manager.uiState.first { state -> state.messages.any { it.text == "Answer to Question 2" } }
+        }
     }
 
     @Test

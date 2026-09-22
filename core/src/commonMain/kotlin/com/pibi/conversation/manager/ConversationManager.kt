@@ -7,6 +7,7 @@ import com.pibi.conversation.audiorecorder.rms
 import com.pibi.conversation.data.model.Message
 import com.pibi.conversation.data.model.MessageType
 import com.pibi.conversation.data.model.AnswerEvent
+import com.pibi.conversation.data.model.SpeechRequest
 import com.pibi.conversation.data.repository.ConversationRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -121,7 +122,7 @@ class ConversationManager(
      * with no subscriber drops what it is given, so a question asked while the stream was
      * reconnecting would vanish without a trace. A channel holds it until the stream is back.
      */
-    private val llmRequests = Channel<String>(Channel.BUFFERED)
+    private val llmRequests = Channel<SpeechRequest>(Channel.BUFFERED)
 
     /** Answer sentences (text plus audio) and end-of-answer markers from the LLM/TTS stream. */
     private val answers = Channel<AnswerEvent>(Channel.UNLIMITED)
@@ -135,6 +136,21 @@ class ConversationManager(
 
     /** False while the app is in the background: no recording, no questions. */
     private val awake = MutableStateFlow(true)
+
+    /** True between asking a question and the answer being closed, so [stopSpeaking] knows there is one. */
+    @Volatile
+    private var answerInFlight = false
+
+    /**
+     * Answers the user stopped, whose closing marker has not arrived yet.
+     *
+     * The backend finishes the sentence already in its synthesizer before it closes a cancelled
+     * answer, so that marker can turn up after the next question has gone out. Taken for the new
+     * answer's it would end the turn on the spot, and the reply would never be heard. Everything
+     * up to and including it belongs to the answer nobody is listening to any more.
+     */
+    @Volatile
+    private var cancelledAnswers = 0
 
     /**
      * Opens the session and runs turns until cancelled. Suspends for as long as the conversation
@@ -157,6 +173,7 @@ class ConversationManager(
      */
     fun stop()
     {
+        stopSpeaking()
         currentTurn?.cancel()
     }
 
@@ -171,7 +188,24 @@ class ConversationManager(
     fun pause()
     {
         awake.value = false
+        stopSpeaking()
         currentTurn?.cancel()
+    }
+
+    /**
+     * Tells the backend to stop the answer it is speaking. Without this it would go on generating
+     * and synthesizing a reply nobody is listening to, and would remember having given it.
+     *
+     * trySend because this is called from whichever thread taps Stop; the channel is buffered, and
+     * a cancel that cannot be queued is one the backend does not need anyway.
+     */
+    private fun stopSpeaking()
+    {
+        if (!answerInFlight) return   // nothing is being said, so nothing will be closed either
+
+        answerInFlight = false
+        cancelledAnswers++
+        llmRequests.trySend(SpeechRequest.Cancel)
     }
 
     /** Starts listening again after [pause]. */
@@ -325,7 +359,8 @@ class ConversationManager(
 
                     ConversationState.SendTextToLlm ->
                     {
-                        llmRequests.send(question)
+                        llmRequests.send(SpeechRequest.Say(question))
+                        answerInFlight = true
                         ConversationState.WaitForAudioAndTextFromLlm
                     }
 
@@ -356,8 +391,12 @@ class ConversationManager(
         while (transcripts.tryReceive().isSuccess)
         {
         }
-        while (answers.tryReceive().isSuccess)
+        while (true)
         {
+            val event = answers.tryReceive().getOrNull() ?: break
+            // A marker dropped here still closes a cancelled answer, or the count would stay
+            // high and swallow the next real one.
+            if (event is AnswerEvent.Complete && cancelledAnswers > 0) cancelledAnswers--
         }
     }
 
@@ -430,7 +469,24 @@ class ConversationManager(
         var timeout = FIRST_ANSWER_TIMEOUT
         while (true)
         {
-            when (val event = withTimeoutOrNull(timeout) { answers.receive() } ?: break)
+            val event = withTimeoutOrNull(timeout) { answers.receive() }
+            if (event == null)
+            {
+                // Nothing at all arrived. Whatever markers were still owed are not coming either,
+                // so stop expecting them rather than swallowing the next answer.
+                cancelledAnswers = 0
+                break
+            }
+
+            if (cancelledAnswers > 0)
+            {
+                // Still draining an answer the user stopped; the backend closes it before it
+                // starts on ours.
+                if (event is AnswerEvent.Complete) cancelledAnswers--
+                continue
+            }
+
+            when (event)
             {
                 is AnswerEvent.Sentence ->
                 {
@@ -443,6 +499,8 @@ class ConversationManager(
                 AnswerEvent.Complete -> break
             }
         }
+
+        answerInFlight = false
     }
 
     private fun transitionTo(state: ConversationState)
