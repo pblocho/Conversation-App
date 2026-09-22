@@ -1,6 +1,6 @@
 package com.pibi.conversation.data.repository
 
-import com.pibi.conversation.data.model.SynthesizedSpeech
+import com.pibi.conversation.data.model.AnswerEvent
 import com.pibi.conversation.networking.stt.SttClient
 import com.pibi.conversation.networking.tts.TtsClient
 import kotlinx.coroutines.flow.Flow
@@ -23,11 +23,14 @@ interface ConversationRepository
     fun transcribe(audioSource: Flow<ByteArray>): Flow<String>
 
     /**
-     * Streams text to the TTS backend; emits each synthesized sentence with its source text.
+     * Streams text to the TTS backend; emits each synthesized sentence with its source text, then
+     * [AnswerEvent.Complete] when that answer is finished.
+     *
      * Each collection is one stream — and one LLM conversation on the backend, which keeps the
-     * chat history per stream. Failures reach the collector rather than ending the flow quietly.
+     * chat history per stream. That is why the end of an answer is an event on the stream rather
+     * than the end of it. Failures reach the collector rather than ending the flow quietly.
      */
-    fun synthesizeSpeech(textFlow: Flow<String>): Flow<SynthesizedSpeech>
+    fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent>
 }
 
 /** Talks to the STT and TTS backends over gRPC ([SttClient], [TtsClient]). */
@@ -39,6 +42,6 @@ class GrpcConversationRepository(
     override fun transcribe(audioSource: Flow<ByteArray>): Flow<String> =
         sttClient.streamAudioToStt(audioSource)
 
-    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<SynthesizedSpeech> =
+    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent> =
         ttsClient.streamSpeech(textFlow)
 }

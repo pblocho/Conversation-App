@@ -1,5 +1,6 @@
 package com.pibi.conversation.networking
 
+import com.pibi.conversation.data.model.AnswerEvent
 import com.pibi.conversation.grpc.AudioData
 import com.pibi.conversation.grpc.TextPiece
 import com.pibi.conversation.grpc.TtsService
@@ -32,6 +33,16 @@ private class EchoTtsService : TtsService {
         }
 }
 
+/** Answers one sentence and then marks the answer finished, the way a real backend should. */
+private class MarkingTtsService : TtsService {
+    override fun Synthesize(message: Flow<TextPiece>): Flow<AudioData> = flow {
+        message.collect { piece ->
+            emit(AudioData { text = "spoken: ${piece.text}"; data = ByteString(1, 2, 3) })
+            emit(AudioData { endOfAnswer = true })
+        }
+    }
+}
+
 /** A backend that drops the stream, which is what the manager's reconnect logic hangs on. */
 private class BrokenTtsService : TtsService {
     override fun Synthesize(message: Flow<TextPiece>): Flow<AudioData> = flow {
@@ -57,8 +68,32 @@ class TtsGrpcTest {
 
             // Each result pairs the audio with the text it was synthesized from — the thing the
             // app shows on screen while it plays.
-            assertEquals(listOf("spoken: Hello there", "spoken: How are you"), spoken.map { it.text })
-            assertContentEquals("Hello there".encodeToByteArray(), spoken.first().audioWavBytes)
+            val sentences = spoken.filterIsInstance<AnswerEvent.Sentence>()
+            assertEquals(listOf("spoken: Hello there", "spoken: How are you"), sentences.map { it.text })
+            assertContentEquals("Hello there".encodeToByteArray(), sentences.first().audioWavBytes)
+        } finally {
+            client.shutdown()
+            server.shutdown()
+            server.awaitTermination()
+        }
+    }
+
+    @Test
+    fun theEndOfAnswerMarkerArrivesAsItsOwnEvent() = runBlocking {
+        val port = freePort()
+        val server = GrpcServer(port) {
+            services { registerService<TtsService> { MarkingTtsService() } }
+        }.start()
+
+        val client = TtsClient(port = port)
+        try {
+            val events = withTimeout(15_000) { client.streamSpeech(flowOf("Hello")).toList() }
+
+            // The marker carries no audio and no text, so it must not arrive as a sentence the
+            // app would show on screen and try to play.
+            assertEquals(2, events.size)
+            assertEquals("spoken: Hello", (events.first() as AnswerEvent.Sentence).text)
+            assertEquals(AnswerEvent.Complete, events.last())
         } finally {
             client.shutdown()
             server.shutdown()

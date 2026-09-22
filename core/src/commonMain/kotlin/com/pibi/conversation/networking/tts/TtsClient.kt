@@ -1,7 +1,7 @@
 package com.pibi.conversation.networking.tts
 
 import com.pibi.conversation.AppConfig
-import com.pibi.conversation.data.model.SynthesizedSpeech
+import com.pibi.conversation.data.model.AnswerEvent
 import com.pibi.conversation.grpc.TextPiece
 import com.pibi.conversation.grpc.TtsService
 import com.pibi.conversation.grpc.invoke
@@ -28,14 +28,18 @@ class TtsClient(
     fun shutdown() = client.shutdown()
 
     /**
-     * Streams text pieces to the TTS backend and emits each synthesized result — audio together
-     * with the text it was generated from. Playback is up to the caller.
+     * Streams text pieces to the TTS backend and emits what comes back: each synthesized sentence
+     * as [AnswerEvent.Sentence], and the backend's end-of-answer marker as [AnswerEvent.Complete].
+     * Playback is up to the caller.
+     *
+     * The marker is an ordinary message rather than the end of the stream, because the stream
+     * outlives the answer — it carries every later question too.
      *
      * Each collection opens a fresh stream, and **failures propagate to the collector** instead of
      * ending the flow quietly: only the caller knows whether a lost stream should be retried, and
      * a silent completion here would strand every later question with no way to notice.
      */
-    fun streamSpeech(textInputFlow: Flow<String>): Flow<SynthesizedSpeech> = flow {
+    fun streamSpeech(textInputFlow: Flow<String>): Flow<AnswerEvent> = flow {
         val service = client.withService<TtsService>()
 
         val requests = textInputFlow.map { pieceOfText ->
@@ -43,7 +47,10 @@ class TtsClient(
         }
 
         service.Synthesize(requests).collect { audio ->
-            emit(SynthesizedSpeech(audio.text, audio.data.toByteArray()))
+            emit(
+                if (audio.endOfAnswer) AnswerEvent.Complete
+                else AnswerEvent.Sentence(audio.text, audio.data.toByteArray())
+            )
         }
     }
 }

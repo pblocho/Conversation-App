@@ -27,13 +27,35 @@ private class EchoSttService : SttService {
     override fun Transcribe(message: Flow<AudioChunk>): Flow<Transcript> =
         message.transformWhile { chunk ->
             if (chunk.endOfUtterance) {
-                emit(Transcript { text = "end" })
+                emit(Transcript { text = "end"; isFinal = true })
                 false
             } else {
                 emit(Transcript { text = "${chunk.data.size} bytes" })
                 true
             }
         }
+}
+
+/** Splits every utterance into three transcripts, the way a recognizer segments a long sentence. */
+private class SegmentingSttService : SttService {
+    override fun Transcribe(message: Flow<AudioChunk>): Flow<Transcript> = flow {
+        message.collect { chunk ->
+            if (chunk.endOfUtterance) {
+                emit(Transcript { text = "I went" })
+                emit(Transcript { text = "to the cinema" })
+                emit(Transcript { text = "yesterday"; isFinal = true })
+            }
+        }
+    }
+}
+
+/** Reports every utterance as holding no speech, the way silence comes back. */
+private class NothingHeardSttService : SttService {
+    override fun Transcribe(message: Flow<AudioChunk>): Flow<Transcript> = flow {
+        message.collect { chunk ->
+            if (chunk.endOfUtterance) emit(Transcript { isFinal = true })
+        }
+    }
 }
 
 /** Records what actually reached the wire, so the client's own protocol can be asserted. */
@@ -67,10 +89,57 @@ class SttGrpcSmokeTest {
             // One collection is one stream, so there is no window in which a transcript could be
             // emitted before anyone is listening.
             val received = withTimeout(15_000) {
-                client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))).take(2).toList()
+                client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))).take(1).toList()
             }
 
-            assertEquals(listOf("3 bytes", "end"), received)
+            // The two transcripts the backend sent are one utterance — the client joins them and
+            // emits once, when the backend flags the last one.
+            assertEquals(listOf("3 bytes end"), received)
+        } finally {
+            client.shutdown()
+            server.shutdown()
+            server.awaitTermination()
+        }
+    }
+
+    @Test
+    fun segmentsOfOneUtteranceArriveAsOneQuestion() = runBlocking {
+        val port = freePort()
+        val server = GrpcServer(port) {
+            services { registerService<SttService> { SegmentingSttService() } }
+        }.start()
+
+        val client = SttClient(port = port)
+        try {
+            val received = withTimeout(15_000) {
+                client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))).take(1).toList()
+            }
+
+            // Joined on the flag, not on a timer: the caller gets a whole question, once.
+            assertEquals(listOf("I went to the cinema yesterday"), received)
+        } finally {
+            client.shutdown()
+            server.shutdown()
+            server.awaitTermination()
+        }
+    }
+
+    @Test
+    fun anUtteranceWithNoSpeechIsReportedAtOnce() = runBlocking {
+        val port = freePort()
+        val server = GrpcServer(port) {
+            services { registerService<SttService> { NothingHeardSttService() } }
+        }.start()
+
+        val client = SttClient(port = port)
+        try {
+            val received = withTimeout(15_000) {
+                client.streamAudioToStt(flowOf(byteArrayOf(1, 2, 3), ByteArray(0))).take(1).toList()
+            }
+
+            // An empty question rather than silence, so the caller stops waiting immediately
+            // instead of sitting out its transcript timeout.
+            assertEquals(listOf(""), received)
         } finally {
             client.shutdown()
             server.shutdown()

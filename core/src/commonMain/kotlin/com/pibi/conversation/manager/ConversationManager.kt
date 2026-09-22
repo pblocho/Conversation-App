@@ -6,7 +6,7 @@ import com.pibi.conversation.audiorecorder.AudioRecorder
 import com.pibi.conversation.audiorecorder.rms
 import com.pibi.conversation.data.model.Message
 import com.pibi.conversation.data.model.MessageType
-import com.pibi.conversation.data.model.SynthesizedSpeech
+import com.pibi.conversation.data.model.AnswerEvent
 import com.pibi.conversation.data.repository.ConversationRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,7 +33,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.concurrent.Volatile
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -72,17 +71,17 @@ class ConversationManager(
         /** Give up on a transcript that never arrives (e.g. the utterance held no speech). */
         val TRANSCRIPT_TIMEOUT = 30.seconds
 
-        /** Whisper may split one utterance into several segments; collect the stragglers. */
-        val TRANSCRIPT_SEGMENT_WINDOW = 300.milliseconds
-
         /** The LLM may think for a while before its first sentence comes back synthesized. */
         val FIRST_ANSWER_TIMEOUT = 60.seconds
 
         /**
-         * A gap this long on the answer stream means the assistant stopped talking. The backend
-         * synthesizes the next sentence while the current one plays, so by the time playback ends
-         * the next sentence is normally already queued. (The TTS contract carries no
-         * end-of-answer marker — adding one would turn this guess into a fact.)
+         * Fallback for a backend that does not send [AnswerEvent.Complete]: a gap this long on the
+         * answer stream is taken for the end of the answer. One that does send the marker ends the
+         * turn the moment it arrives and never waits this out.
+         *
+         * Kept short because it is still the normal path against a backend without the marker —
+         * raising it would add that much silence to every turn there. Once every backend sends
+         * one, this becomes a pure watchdog and can go up.
          */
         val ANSWER_COMPLETE_TIMEOUT = 5.seconds
 
@@ -124,8 +123,8 @@ class ConversationManager(
      */
     private val llmRequests = Channel<String>(Channel.BUFFERED)
 
-    /** Answer sentences (text plus audio) coming back from the LLM/TTS stream. */
-    private val answers = Channel<SynthesizedSpeech>(Channel.UNLIMITED)
+    /** Answer sentences (text plus audio) and end-of-answer markers from the LLM/TTS stream. */
+    private val answers = Channel<AnswerEvent>(Channel.UNLIMITED)
 
     /**
      * The turn currently being run, so [stop] can cancel it. Written by the conversation coroutine
@@ -410,30 +409,39 @@ class ConversationManager(
      */
     private suspend fun awaitQuestion(): String
     {
-        val firstSegment = withTimeoutOrNull(TRANSCRIPT_TIMEOUT) { transcripts.receive() } ?: return ""
+        // One transcript is one finished question: the client joins the segments the recognizer
+        // split it into. Empty means the utterance held no speech after all.
+        val question = withTimeoutOrNull(TRANSCRIPT_TIMEOUT) { transcripts.receive() }?.trim() ?: return ""
 
-        val segments = mutableListOf(firstSegment)
-        while (true)
-        {
-            segments += withTimeoutOrNull(TRANSCRIPT_SEGMENT_WINDOW) { transcripts.receive() } ?: break
-        }
-
-        val question = segments.joinToString(" ") { it.trim() }.trim()
         if (question.isNotEmpty()) addMessage(question, MessageType.QUESTION)
         return question
     }
 
-    /** Plays the answer sentence by sentence, showing each one as it is spoken. */
+    /**
+     * Plays the answer sentence by sentence, showing each one as it is spoken, until the backend
+     * marks the answer finished.
+     *
+     * The turn ends on [AnswerEvent.Complete]; the timeout is only there for a backend that never
+     * sends one — either because it does not implement the marker yet, or because it died
+     * mid-answer, which must not leave the machine waiting here forever.
+     */
     private suspend fun speakAnswer()
     {
         var timeout = FIRST_ANSWER_TIMEOUT
         while (true)
         {
-            val speech = withTimeoutOrNull(timeout) { answers.receive() } ?: break
-            addMessage(speech.text, MessageType.ANSWER)
-            // No withContext here: playback confines its own blocking work.
-            playAudio(speech.audioWavBytes)
-            timeout = ANSWER_COMPLETE_TIMEOUT
+            when (val event = withTimeoutOrNull(timeout) { answers.receive() } ?: break)
+            {
+                is AnswerEvent.Sentence ->
+                {
+                    addMessage(event.text, MessageType.ANSWER)
+                    // No withContext here: playback confines its own blocking work.
+                    playAudio(event.audioWavBytes)
+                    timeout = ANSWER_COMPLETE_TIMEOUT
+                }
+
+                AnswerEvent.Complete -> break
+            }
         }
     }
 

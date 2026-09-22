@@ -28,7 +28,7 @@ private class EchoSttService : SttService {
         message.collect { chunk ->
             if (chunk.endOfUtterance) {
                 println("E2E STT: end of utterance")
-                emit(Transcript { text = "utterance-end" })
+                emit(Transcript { text = "utterance-end"; isFinal = true })
             } else {
                 println("E2E STT: ${chunk.data.size} bytes of audio")
                 emit(Transcript { text = "heard ${chunk.data.size} bytes" })
@@ -45,6 +45,9 @@ private class ToneTtsService : TtsService {
                 data = ByteString(*toneWav())
                 text = piece.text
             })
+            // Mark the answer finished, as a real backend should: without it the client falls
+            // back to waiting out ANSWER_COMPLETE_TIMEOUT before it listens again.
+            emit(AudioData { endOfAnswer = true })
         }
     }
 }

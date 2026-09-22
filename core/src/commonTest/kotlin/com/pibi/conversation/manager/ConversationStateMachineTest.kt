@@ -1,7 +1,7 @@
 package com.pibi.conversation.manager
 
 import com.pibi.conversation.data.model.MessageType
-import com.pibi.conversation.data.model.SynthesizedSpeech
+import com.pibi.conversation.data.model.AnswerEvent
 import com.pibi.conversation.data.repository.ConversationRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -13,15 +13,21 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
-/** Backend stand-in: answers every finished utterance with a transcript, and every question with speech. */
-private class FakeRepository : ConversationRepository
+/**
+ * Backend stand-in: answers every finished utterance with a transcript, and every question with
+ * speech. [marksAnswerComplete] off stands in for a backend that does not implement the
+ * end-of-answer marker, leaving the client on its timeout.
+ */
+private class FakeRepository(private val marksAnswerComplete: Boolean = true) : ConversationRepository
 {
     val questionsAsked = mutableListOf<String>()
 
@@ -32,10 +38,13 @@ private class FakeRepository : ConversationRepository
         }
     }
 
-    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<SynthesizedSpeech> = flow {
+    override fun synthesizeSpeech(textFlow: Flow<String>): Flow<AnswerEvent> = flow {
         textFlow.collect { question ->
             questionsAsked += question
-            emit(SynthesizedSpeech("It is sunny.", byteArrayOf(1, 2, 3)))
+            emit(AnswerEvent.Sentence("It is sunny.", byteArrayOf(1, 2, 3)))
+            // Like a backend that implements the marker: say the answer is over instead of
+            // leaving the client to wait out the timeout.
+            if (marksAnswerComplete) emit(AnswerEvent.Complete)
         }
     }
 }
@@ -78,6 +87,9 @@ private suspend fun ReceiveChannel<ConversationState>.receiveUntil(state: Conver
 {
     while (receive() != state) { /* walk past the states before the one we care about */ }
 }
+
+/** Mirrors ConversationManager.ANSWER_COMPLETE_TIMEOUT, which is private to the manager. */
+private const val ANSWER_COMPLETE_TIMEOUT_MILLIS = 5_000L
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationStateMachineTest
@@ -126,6 +138,43 @@ class ConversationStateMachineTest
         assertEquals(MessageType.QUESTION, messages.first().messageType)
         assertEquals("It is sunny.", messages[1].text)
         assertEquals(MessageType.ANSWER, messages[1].messageType)
+    }
+
+    /**
+     * The end-of-answer marker is what ends the turn — the timeout is only a fallback. Measured in
+     * virtual time, so the assertion is about waiting, not about how fast the machine runs.
+     */
+    @Test
+    fun theMarkerEndsTheAnswerWithoutWaitingOutTheTimeout() = runTest {
+        val manager = manager(FakeRepository(marksAnswerComplete = true))
+        val states = statesOf(manager)
+        backgroundScope.launch { manager.startConversation() }
+
+        states.receiveUntil(ConversationState.WaitForAudioAndTextFromLlm)
+        val answerStarted = currentTime
+        states.receiveUntil(ConversationState.Idle)
+
+        assertTrue(
+            currentTime - answerStarted < ANSWER_COMPLETE_TIMEOUT_MILLIS,
+            "the turn should end on the marker, not after ${ANSWER_COMPLETE_TIMEOUT_MILLIS}ms of silence"
+        )
+    }
+
+    /** A backend that never sends the marker must still end the turn, on the timeout. */
+    @Test
+    fun anAnswerWithoutAMarkerStillEndsTheTurn() = runTest {
+        val manager = manager(FakeRepository(marksAnswerComplete = false))
+        val states = statesOf(manager)
+        backgroundScope.launch { manager.startConversation() }
+
+        states.receiveUntil(ConversationState.WaitForAudioAndTextFromLlm)
+        val answerStarted = currentTime
+        states.receiveUntil(ConversationState.Idle)
+
+        assertTrue(
+            currentTime - answerStarted >= ANSWER_COMPLETE_TIMEOUT_MILLIS,
+            "without a marker the turn should end only once the answer stream has gone quiet"
+        )
     }
 
     @Test

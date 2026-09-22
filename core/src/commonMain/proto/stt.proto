@@ -16,4 +16,11 @@ message AudioChunk {
 
 message Transcript {
   string text = 1;
+  // True on the last transcript of an utterance, so the client knows the question is complete.
+  //
+  // One utterance can come back as several transcripts, because the recognizer may split it into
+  // segments. An utterance that turned out to hold no speech is reported as a single transcript
+  // with empty text and this flag set, rather than as silence the client has to time out on.
+  // Mirrors end_of_answer on the way down.
+  bool is_final = 2;
 }

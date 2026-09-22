@@ -12,8 +12,14 @@ message TextPiece {
 }
 
 message AudioData {
-  // WAV-encoded audio bytes for playback.
+  // WAV-encoded audio bytes for playback. Empty on the end-of-answer marker.
   bytes data = 1;
-  // The text this audio chunk was synthesized from.
+  // The text this audio chunk was synthesized from. Empty on the end-of-answer marker.
   string text = 2;
+  // Marks the end of one answer, as a message of its own carrying no audio and no text.
+  //
+  // One stream serves many turns — the backend keeps the LLM chat history per stream — so the
+  // end of an answer cannot be signalled by closing the stream the way a plain RPC would.
+  // Mirrors end_of_utterance on the way up.
+  bool end_of_answer = 3;
 }

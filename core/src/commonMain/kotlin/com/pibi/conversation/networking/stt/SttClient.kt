@@ -54,6 +54,24 @@ class SttClient(
             }
         }
 
-        emitAll(service.Transcribe(requests).map { it.text })
+        // The backend may split one utterance into several transcripts and flags the last of
+        // them, so the pieces are joined here and emitted once: one emission is one complete
+        // question. An utterance that held no speech arrives as an empty final transcript and is
+        // emitted as an empty string, so the caller learns straight away rather than waiting.
+        val question = StringBuilder()
+        service.Transcribe(requests).collect { transcript ->
+            val segment = transcript.text.trim()
+            if (segment.isNotEmpty())
+            {
+                if (question.isNotEmpty()) question.append(' ')
+                question.append(segment)
+            }
+
+            if (transcript.isFinal)
+            {
+                emit(question.toString())
+                question.clear()
+            }
+        }
     }
 }
